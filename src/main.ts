@@ -3,6 +3,7 @@ import "./style.css";
 import App from "./App.vue";
 
 // Vuetify
+//@ts-ignore
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
