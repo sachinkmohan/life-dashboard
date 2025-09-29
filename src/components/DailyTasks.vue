@@ -33,10 +33,19 @@
 
       <v-row>
         <v-col cols="12">
+          <v-btn
+            v-if="tasks.length > 0"
+            @click="uncheckAll"
+            color="secondary"
+            variant="outlined"
+            class="mb-2"
+            size="small"
+          >
+            Uncheck All
+          </v-btn>
           <template v-if="tasks.length > 0">
             <v-card variant="outlined">
               <v-list>
-                <!-- Use sortedTasks instead of tasks for rendering -->
                 <v-list-item
                   v-for="task in sortedTasks"
                   :key="task.id"
@@ -49,7 +58,6 @@
                       hide-details
                     />
                   </template>
-                  <!-- Added inline editing logic -->
                   <v-list-item-title
                     v-if="editingTaskId !== task.id"
                     :style="
@@ -60,7 +68,6 @@
                   >
                     {{ task.text }}
                   </v-list-item-title>
-                  <!-- Show input when editing -->
                   <v-text-field
                     v-else
                     v-model="editedTaskText"
@@ -69,7 +76,6 @@
                     style="max-width: 200px"
                   />
                   <template v-slot:append>
-                    <!-- Edit button, shown when not editing this task -->
                     <v-btn
                       v-if="editingTaskId !== task.id"
                       icon="mdi-pencil"
@@ -78,7 +84,6 @@
                       variant="text"
                       size="small"
                     />
-                    <!-- OK and Cancel buttons, shown when editing -->
                     <v-btn
                       v-else
                       icon="mdi-check"
@@ -156,6 +161,7 @@ const startEditing = (task: Task) => {
 const saveEdit = (task: Task) => {
   if (editedTaskText.value.trim() === "") return;
   task.text = editedTaskText.value;
+  // Added: finish editing after saving
   editingTaskId.value = null;
   editedTaskText.value = "";
 };
@@ -181,8 +187,14 @@ watch(
   { deep: true }
 );
 
-// Added computed property to sort tasks: incomplete first, completed last
 const sortedTasks = computed(() =>
   tasks.value.slice().sort((a, b) => Number(a.done) - Number(b.done))
 );
+
+const uncheckAll = () => {
+  tasks.value = tasks.value.map((task) => ({
+    ...task,
+    done: false,
+  }));
+};
 </script>
