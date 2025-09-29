@@ -36,7 +36,8 @@
           <template v-if="tasks.length > 0">
             <v-card variant="outlined">
               <v-list>
-                <v-list-item v-for="task in tasks" :key="task.id" lines="one">
+                <!-- Use sortedTasks instead of tasks for rendering -->
+                <v-list-item v-for="task in sortedTasks" :key="task.id" lines="one">
                   <template v-slot:prepend>
                     <v-checkbox
                       v-model="task.done"
@@ -116,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, computed } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 interface Task {
@@ -174,5 +175,10 @@ watch(
     localStorage.setItem("tasks", JSON.stringify(newTasks));
   },
   { deep: true }
+);
+
+// Added computed property to sort tasks: incomplete first, completed last
+const sortedTasks = computed(() =>
+  tasks.value.slice().sort((a, b) => Number(a.done) - Number(b.done))
 );
 </script>
