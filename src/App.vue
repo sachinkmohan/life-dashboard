@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import WeekNumber from "./components/WeekNumber.vue";
 import DailyTasks from "./components/DailyTasks.vue";
+import CustomCountdown from "./components/CustomCountdown.vue";
 </script>
 
 <template>
@@ -11,6 +12,9 @@ import DailyTasks from "./components/DailyTasks.vue";
       </v-col>
       <v-col cols="6">
         <DailyTasks />
+      </v-col>
+      <v-col cols="6">
+        <CustomCountdown />
       </v-col>
     </v-row>
   </v-container>
