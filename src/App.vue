@@ -1,9 +1,19 @@
 <script setup lang="ts">
 import WeekNumber from "./components/WeekNumber.vue";
+import DailyTasks from "./components/DailyTasks.vue";
 </script>
 
 <template>
-  <WeekNumber />
+  <v-container fluid>
+    <v-row>
+      <v-col cols="6">
+        <WeekNumber />
+      </v-col>
+      <v-col cols="6">
+        <DailyTasks />
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <style scoped>

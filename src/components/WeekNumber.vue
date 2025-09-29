@@ -1,6 +1,6 @@
 <template>
   <div class="text-h2">
-    <p>Week Number - {{ currentWeekNumber }}</p>
+    <p>WN - {{ currentWeekNumber }}</p>
     <p class="text-h4">Date - {{ currentDate }}</p>
   </div>
 </template>
