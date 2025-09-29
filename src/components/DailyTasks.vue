@@ -44,7 +44,9 @@
                       hide-details
                     />
                   </template>
+                  <!-- Added inline editing logic -->
                   <v-list-item-title
+                    v-if="editingTaskId !== task.id"
                     :style="
                       task.done
                         ? 'text-decoration: line-through; color: #888;'
@@ -53,7 +55,41 @@
                   >
                     {{ task.text }}
                   </v-list-item-title>
+                  <!-- Show input when editing -->
+                  <v-text-field
+                    v-else
+                    v-model="editedTaskText"
+                    density="compact"
+                    hide-details
+                    style="max-width: 200px"
+                  />
                   <template v-slot:append>
+                    <!-- Edit button, shown when not editing this task -->
+                    <v-btn
+                      v-if="editingTaskId !== task.id"
+                      icon="mdi-pencil"
+                      @click="startEditing(task)"
+                      color="primary"
+                      variant="text"
+                      size="small"
+                    />
+                    <!-- OK and Cancel buttons, shown when editing -->
+                    <v-btn
+                      v-else
+                      icon="mdi-check"
+                      @click="saveEdit(task)"
+                      color="success"
+                      variant="text"
+                      size="small"
+                    />
+                    <v-btn
+                      v-if="editingTaskId === task.id"
+                      icon="mdi-close"
+                      @click="cancelEdit"
+                      color="grey"
+                      variant="text"
+                      size="small"
+                    />
                     <v-btn
                       icon="mdi-delete"
                       @click="deleteTask(task.id)"
@@ -90,18 +126,48 @@ interface Task {
 }
 const newTask = ref("");
 const tasks = ref<Task[]>([]);
+const editingTaskId = ref<string | null>(null);
+const editedTaskText = ref("");
+
+// Add task function
 const addTask = () => {
   if (newTask.value.trim() === "") return;
   tasks.value.push({ id: uuidv4(), text: newTask.value, done: false });
   newTask.value = "";
 };
+
+// Delete task function
 const deleteTask = (id: string) => {
   tasks.value = tasks.value.filter((task) => task.id !== id);
 };
+
+// Start editing a task
+const startEditing = (task: Task) => {
+  editingTaskId.value = task.id;
+  editedTaskText.value = task.text;
+};
+
+// Save edited task
+const saveEdit = (task: Task) => {
+  if (editedTaskText.value.trim() === "") return;
+  task.text = editedTaskText.value;
+  editingTaskId.value = null;
+  editedTaskText.value = "";
+};
+
+// Cancel editing
+const cancelEdit = () => {
+  editingTaskId.value = null;
+  editedTaskText.value = "";
+};
+
+// Load tasks from localStorage on component mount
 onMounted(() => {
   const savedTasks = localStorage.getItem("tasks");
   if (savedTasks) tasks.value = JSON.parse(savedTasks);
 });
+
+// Watch for task changes and update localStorage
 watch(
   tasks,
   (newTasks) => {
