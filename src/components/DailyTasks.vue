@@ -37,7 +37,11 @@
             <v-card variant="outlined">
               <v-list>
                 <!-- Use sortedTasks instead of tasks for rendering -->
-                <v-list-item v-for="task in sortedTasks" :key="task.id" lines="one">
+                <v-list-item
+                  v-for="task in sortedTasks"
+                  :key="task.id"
+                  lines="one"
+                >
                   <template v-slot:prepend>
                     <v-checkbox
                       v-model="task.done"
