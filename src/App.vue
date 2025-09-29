@@ -1,16 +1,24 @@
 <script setup lang="ts">
 import WeekNumber from "./components/WeekNumber.vue";
 import DailyTasks from "./components/DailyTasks.vue";
+import CustomCountdown from "./components/CustomCountdown.vue";
 </script>
 
 <template>
   <v-container fluid>
     <v-row>
+      <!-- Changed: Only WeekNumber and DailyTasks in first row -->
       <v-col cols="6">
         <WeekNumber />
       </v-col>
       <v-col cols="6">
         <DailyTasks />
+      </v-col>
+    </v-row>
+    <v-row>
+      <!-- Changed: CustomCountdown in second row, full width -->
+      <v-col cols="12">
+        <CustomCountdown />
       </v-col>
     </v-row>
   </v-container>
