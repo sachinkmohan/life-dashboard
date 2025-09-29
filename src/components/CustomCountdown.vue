@@ -87,7 +87,6 @@ function getToday(): string {
 }
 
 // State variables
-const newTitle = ref<string>("");
 const newCountdown = ref<string>(getToday()); // Changed: default to today
 const countdowns = ref<CountdownItem[]>([]);
 const isHidden = ref<boolean>(true);
@@ -107,14 +106,11 @@ function fetchCountdowns() {
 
 // Save countdowns to localStorage
 function saveCountdowns() {
-  // Added: localStorage save logic
   localStorage.setItem("countdowns", JSON.stringify(countdowns.value));
 }
 
-// Add new countdown
 function addCountdown() {
-  // ...existing code...
-  const title = newTitle.value.trim();
+  const title = defaultInputCountdownText.value.trim(); // Changed from newTitle.value
   const countdownVal = newCountdown.value.trim();
   if (!title || !countdownVal) {
     return;
@@ -126,8 +122,8 @@ function addCountdown() {
   };
   countdowns.value.push(newItem);
   saveCountdowns();
-  newTitle.value = "";
-  newCountdown.value = getToday(); // Changed: reset to today after add
+  defaultInputCountdownText.value = "Today"; // Changed: reset title input
+  newCountdown.value = getToday();
 }
 
 // Delete countdown by id
