@@ -41,8 +41,12 @@
                 <p class="ml-5">{{ item.title }}</p>
               </v-col>
               <v-col class="d-flex justify-end">
-                <v-btn icon @click="deleteCountdown(item.id)" color="red">
-                  <v-icon>mdi-delete</v-icon>
+                <v-btn
+                  icon="mdi-delete"
+                  @click="deleteCountdown(item.id)"
+                  color="red-lighten-5"
+                  size="small"
+                >
                 </v-btn>
               </v-col>
             </v-row>
@@ -50,6 +54,8 @@
               :deadline="item.countdown"
               countdownSize="1.5rem"
               labelSize="0.9rem"
+              mainColor="#e08996"
+              secondFlipColor="orange"
             />
           </v-card>
         </v-col>

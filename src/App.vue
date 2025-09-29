@@ -7,13 +7,17 @@ import CustomCountdown from "./components/CustomCountdown.vue";
 <template>
   <v-container fluid>
     <v-row>
-      <v-col cols="4">
+      <!-- Changed: Only WeekNumber and DailyTasks in first row -->
+      <v-col cols="6">
         <WeekNumber />
       </v-col>
-      <v-col cols="4">
+      <v-col cols="6">
         <DailyTasks />
       </v-col>
-      <v-col cols="4">
+    </v-row>
+    <v-row>
+      <!-- Changed: CustomCountdown in second row, full width -->
+      <v-col cols="12">
         <CustomCountdown />
       </v-col>
     </v-row>
