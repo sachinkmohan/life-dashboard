@@ -122,3 +122,4 @@ interface Task {
 - Removed BottomNav component import and usage from CustomCountdown.vue.
 - Refactored CustomCountdown.vue to use `<script setup lang="ts">` syntax for Composition API.
 - Target Date field now always defaults to today's date and resets to today's date after adding a countdown.
+- Countdown cards now use full width and Vuetify 3 card styling for improved layout.

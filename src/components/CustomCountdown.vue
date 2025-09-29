@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app class="ml-15">
     <v-btn
       @click="isHidden = !isHidden"
       class="ma-5"
@@ -12,7 +12,11 @@
       <!-- Add a hide toggle button-->
       <v-row v-if="isHidden === false">
         <v-col cols="12" sm="6">
-          <v-text-field label="Title" v-model="newTitle"></v-text-field>
+          <v-text-field
+            label="Title"
+            v-model="defaultInputCountdownText"
+            clearable
+          ></v-text-field>
         </v-col>
         <v-col cols="12" sm="6">
           <v-text-field
@@ -28,30 +32,26 @@
       </v-row>
 
       <v-row>
-        <v-col
-          cols="12"
-          sm="6"
-          v-for="(item, index) in countdowns"
-          :key="index"
-        >
-          <div>
-            <v-row>
+        <!-- Changed: Use full width for each countdown card -->
+        <v-col cols="12" v-for="item in countdowns" :key="item.id">
+          <!-- Changed: Use Vuetify 3 card for countdown display -->
+          <v-card class="mb-4 pa-4">
+            <v-row align="center">
               <v-col>
                 <p class="ml-5">{{ item.title }}</p>
               </v-col>
-              <v-col>
-                <v-btn
-                  icon
-                  @click="deleteCountdown(item.id)"
-                  class="ml-auto"
-                  color="red"
-                >
+              <v-col class="d-flex justify-end">
+                <v-btn icon @click="deleteCountdown(item.id)" color="red">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </v-col>
             </v-row>
-            <Countdown :deadline="item.countdown" />
-          </div>
+            <Countdown
+              :deadline="item.countdown"
+              countdownSize="1.5rem"
+              labelSize="0.9rem"
+            />
+          </v-card>
         </v-col>
       </v-row>
     </v-container>
@@ -60,8 +60,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+//@ts-ignore
 import { Countdown } from "vue3-flip-countdown";
-import { defaultDelimiters } from "vuetify/lib/composables/mask.mjs";
 
 // Type for countdown item
 interface CountdownItem {
@@ -77,7 +77,7 @@ function getToday(): string {
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const dd = String(now.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd} 00:00:00`;
+  return `${yyyy}-${mm}-${dd} 22:30:00`;
 }
 
 // State variables
@@ -85,6 +85,7 @@ const newTitle = ref<string>("");
 const newCountdown = ref<string>(getToday()); // Changed: default to today
 const countdowns = ref<CountdownItem[]>([]);
 const isHidden = ref<boolean>(true);
+const defaultInputCountdownText = ref<string>("Today");
 
 // Helper: Generate unique ID
 function generateId(): string {
