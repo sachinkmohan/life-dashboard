@@ -6,7 +6,7 @@
       max-width="200px"
       color="green"
     >
-      Show Add button
+      Toggle CountDown
     </v-btn>
     <v-container>
       <!-- Add a hide toggle button-->
