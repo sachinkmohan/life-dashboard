@@ -443,14 +443,14 @@ const startEditing = (task: Task) => {
 // Save edited task
 const saveEdit = (task: Task) => {
   if (editedTaskText.value.trim() === "") return;
-  
+
   // Find the task in the tasks array and update it directly to ensure reactivity
-  const taskIndex = tasks.value.findIndex(t => t.id === task.id);
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
   if (taskIndex !== -1) {
     // Update the task text in the reactive array to trigger watchers
     tasks.value[taskIndex].text = editedTaskText.value.trim();
   }
-  
+
   // Clear editing state
   editingTaskId.value = null;
   editedTaskText.value = "";

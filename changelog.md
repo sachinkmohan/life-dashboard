@@ -221,6 +221,7 @@ interface Task {
 ## [Unreleased]
 
 ### Added
+
 - Enhanced task creation with comma-separated input parsing
   - First value becomes the main task title
   - Subsequent comma-separated values automatically become subtasks
@@ -237,6 +238,7 @@ interface Task {
   - Completed tasks are sorted separately but maintain the same priority rules
 
 ### Changed
+
 - Modified `addTask()` function to parse comma-separated input
 - Subtasks are now automatically expanded when created from comma-separated input
 - **Enhanced**: Added intelligent parsing for numbered lists with automatic sorting
@@ -246,12 +248,14 @@ interface Task {
   - Preserved original order for non-numbered tasks within completion groups
 
 ### Fixed
+
 - **CRITICAL**: Fixed task title editing persistence issue
   - Task title changes now properly save to localStorage and persist after page reload
   - Updated `saveEdit()` function to correctly update the reactive tasks array
   - Ensured proper reactivity triggers for localStorage synchronization
 
 ### Technical Details
+
 - Added input parsing logic that splits on commas and creates subtask objects
 - Maintained existing UUID generation for both main tasks and subtasks
 - Preserved existing task structure and properties
@@ -262,6 +266,7 @@ interface Task {
 - **FIXED**: Improved reactivity in task editing to ensure proper localStorage persistence
 
 ### Examples
+
 - Tasks with numbers "3. Task C", "1. Task A", "2. Task B" will display as: "1. Task A", "2. Task B", "3. Task C"
 - Mixed tasks "Task X", "2. Priority", "Task Y", "1. Urgent" will display as: "1. Urgent", "2. Priority", "Task X", "Task Y"
 - Completed tasks maintain the same sorting rules but appear after incomplete tasks
