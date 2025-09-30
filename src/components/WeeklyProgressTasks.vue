@@ -225,7 +225,7 @@
                           class="py-0"
                         >
                           <v-list-item
-                            v-for="(subtask, subtaskIndex) in task.subtasks"
+                            v-for="subtask in task.subtasks"
                             :key="subtask.id"
                             class="py-1 px-0"
                             style="min-height: 36px"
