@@ -3,6 +3,7 @@ import WeekNumber from "./components/WeekNumber.vue";
 import DailyTasks from "./components/DailyTasks.vue";
 import CustomCountdown from "./components/CustomCountdown.vue";
 import OtherTasks from "./components/OtherTasks.vue";
+import WeeklyProgressTasks from "./components/WeeklyProgressTasks.vue";
 </script>
 
 <template>
@@ -23,6 +24,9 @@ import OtherTasks from "./components/OtherTasks.vue";
       <!-- Changed: CustomCountdown in second row, full width -->
       <v-col cols="5">
         <CustomCountdown />
+      </v-col>
+      <v-col cols="7">
+        <WeeklyProgressTasks />
       </v-col>
     </v-row>
   </v-container>
