@@ -253,6 +253,12 @@ interface Task {
   - Task title changes now properly save to localStorage and persist after page reload
   - Updated `saveEdit()` function to correctly update the reactive tasks array
   - Ensured proper reactivity triggers for localStorage synchronization
+- **TypeScript Checkbox Error Fix**: Resolved TypeScript compilation error in WeeklyProgressTasks component
+  - Fixed `$event` type error where v-checkbox emits `boolean | null` but function expected only `boolean`
+  - Updated `updateSubtaskDone` function signature to accept `boolean | null` parameter
+  - Added null coalescing operator (`??`) to convert null values to false
+  - Used nullish coalescing in template to handle null case: `$event ?? false`
+  - Ensured type safety while maintaining existing checkbox functionality
 
 ### Technical Details
 
@@ -264,6 +270,10 @@ interface Task {
 - **NEW**: Handles mixed content (some numbered, some not) gracefully
 - **ENHANCED**: Advanced sorting algorithm that maintains task hierarchy and completion status
 - **FIXED**: Improved reactivity in task editing to ensure proper localStorage persistence
+- Modified `updateSubtaskDone` function to handle `boolean | null` input type
+- Added proper null handling with fallback to `false` for consistent behavior
+- Updated template binding to use nullish coalescing operator
+- Maintained existing reactivity and localStorage persistence functionality
 
 ### Examples
 

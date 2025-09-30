@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2>Weekly Focus</h2>
-    <v-container style="width: 400px; overflow-x: auto">
+    <v-container style="overflow-x: auto">
       <v-row align="center" no-gutters>
         <v-col>
           <v-text-field
@@ -231,11 +231,15 @@
                             style="min-height: 36px"
                           >
                             <template v-slot:prepend>
-                              <!-- Modified: Use computed getter/setter for proper reactivity -->
+                              <!-- Fixed: Handle null case from checkbox model-value -->
                               <v-checkbox
                                 :model-value="subtask.done"
                                 @update:model-value="
-                                  updateSubtaskDone(task, subtask.id, $event)
+                                  updateSubtaskDone(
+                                    task,
+                                    subtask.id,
+                                    $event ?? false
+                                  )
                                 "
                                 color="success"
                                 hide-details
@@ -663,8 +667,15 @@ const deleteSubtask = (task: Task, subtaskId: string) => {
   }
 };
 
-// Added: Update subtask done status with proper reactivity
-const updateSubtaskDone = (task: Task, subtaskId: string, done: boolean) => {
+// Fixed: Update function signature to handle boolean | null and provide proper type safety
+const updateSubtaskDone = (
+  task: Task,
+  subtaskId: string,
+  done: boolean | null
+) => {
+  // Convert null to false for consistent boolean handling
+  const isDone = done ?? false;
+
   // Find the task in the tasks array to ensure reactivity
   const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
   if (taskIndex !== -1 && tasks.value[taskIndex].subtasks) {
@@ -673,7 +684,8 @@ const updateSubtaskDone = (task: Task, subtaskId: string, done: boolean) => {
       (s) => s.id === subtaskId
     );
     if (subtaskIndex !== -1) {
-      tasks.value[taskIndex].subtasks![subtaskIndex].done = done;
+      // Use the converted boolean value
+      tasks.value[taskIndex].subtasks![subtaskIndex].done = isDone;
     }
   }
 };
