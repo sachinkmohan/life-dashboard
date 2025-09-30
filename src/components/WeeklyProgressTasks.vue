@@ -185,7 +185,6 @@
                                 variant="outlined"
                                 @keyup.enter="addSubtask(task)"
                                 style="font-size: 0.9em"
-                                cl
                               />
                             </v-col>
                             <v-col
@@ -351,7 +350,7 @@ const editedTaskText = ref("");
 const editingSubtaskId = ref<string | null>(null);
 const editedSubtaskText = ref("");
 
-// Add task function - Modified to handle comma-separated input
+// Add task function - Modified to handle comma-separated input and numbered lists
 const addTask = () => {
   if (newTask.value.trim() === "") return;
 
@@ -363,16 +362,56 @@ const addTask = () => {
 
   if (parts.length === 0) return;
 
+  // Function to extract number and text from a string like "1. Task name"
+  const parseNumberedItem = (item: string) => {
+    const match = item.match(/^(\d+)\.\s*(.+)$/);
+    if (match) {
+      return {
+        number: parseInt(match[1], 10),
+        text: match[2].trim(),
+        hasNumber: true,
+      };
+    }
+    return {
+      number: 0,
+      text: item,
+      hasNumber: false,
+    };
+  };
+
+  // Parse all parts to extract numbers and text
+  const parsedParts = parts.map(parseNumberedItem);
+
+  // Check if any items have numbers - if so, sort by numbers
+  const hasAnyNumbers = parsedParts.some((part) => part.hasNumber);
+
+  let sortedParts = parsedParts;
+  if (hasAnyNumbers) {
+    // Sort by number, putting non-numbered items at the end
+    sortedParts = parsedParts.sort((a, b) => {
+      if (a.hasNumber && b.hasNumber) {
+        return a.number - b.number;
+      }
+      if (a.hasNumber && !b.hasNumber) {
+        return -1;
+      }
+      if (!a.hasNumber && b.hasNumber) {
+        return 1;
+      }
+      return 0; // both don't have numbers, maintain original order
+    });
+  }
+
   // First part becomes the main task title
-  const mainTaskTitle = parts[0];
+  const mainTaskTitle = sortedParts[0].text;
 
   // Remaining parts become subtasks
-  const subtaskTexts = parts.slice(1);
+  const subtaskTexts = sortedParts.slice(1);
 
   // Create subtasks array from the remaining parts
-  const subtasks = subtaskTexts.map((text) => ({
+  const subtasks = subtaskTexts.map((item) => ({
     id: uuidv4(),
-    text: text,
+    text: item.text,
     done: false,
   }));
 
@@ -404,8 +443,15 @@ const startEditing = (task: Task) => {
 // Save edited task
 const saveEdit = (task: Task) => {
   if (editedTaskText.value.trim() === "") return;
-  task.text = editedTaskText.value;
-  // Added: finish editing after saving
+  
+  // Find the task in the tasks array and update it directly to ensure reactivity
+  const taskIndex = tasks.value.findIndex(t => t.id === task.id);
+  if (taskIndex !== -1) {
+    // Update the task text in the reactive array to trigger watchers
+    tasks.value[taskIndex].text = editedTaskText.value.trim();
+  }
+  
+  // Clear editing state
   editingTaskId.value = null;
   editedTaskText.value = "";
 };
@@ -441,9 +487,57 @@ watch(
   { deep: true }
 );
 
-const sortedTasks = computed(() =>
-  tasks.value.slice().sort((a, b) => Number(a.done) - Number(b.done))
-);
+// Added: Function to extract number from task title for sorting
+const extractTaskNumber = (taskText: string) => {
+  const match = taskText.match(/^(\d+)\.\s*/);
+  return match ? parseInt(match[1], 10) : null;
+};
+
+// Modified: Enhanced sorting to prioritize numbered tasks in ascending order
+const sortedTasks = computed(() => {
+  // First separate numbered and non-numbered tasks
+  const numberedTasks: Task[] = [];
+  const nonNumberedTasks: Task[] = [];
+
+  tasks.value.forEach((task, originalIndex) => {
+    const taskNumber = extractTaskNumber(task.text);
+    if (taskNumber !== null) {
+      // Add original index to preserve order for same completion status
+      numberedTasks.push({ ...task, originalIndex } as Task & {
+        originalIndex: number;
+      });
+    } else {
+      nonNumberedTasks.push({ ...task, originalIndex } as Task & {
+        originalIndex: number;
+      });
+    }
+  });
+
+  // Sort numbered tasks by: 1) completion status 2) number ascending
+  const sortedNumbered = numberedTasks.sort((a, b) => {
+    // First sort by completion status (incomplete tasks first)
+    const completionDiff = Number(a.done) - Number(b.done);
+    if (completionDiff !== 0) return completionDiff;
+
+    // Then sort by task number in ascending order
+    const aNumber = extractTaskNumber(a.text) || 0;
+    const bNumber = extractTaskNumber(b.text) || 0;
+    return aNumber - bNumber;
+  });
+
+  // Sort non-numbered tasks by: 1) completion status 2) original order
+  const sortedNonNumbered = nonNumberedTasks.sort((a, b) => {
+    // First sort by completion status (incomplete tasks first)
+    const completionDiff = Number(a.done) - Number(b.done);
+    if (completionDiff !== 0) return completionDiff;
+
+    // Then maintain original order for same completion status
+    return (a as any).originalIndex - (b as any).originalIndex;
+  });
+
+  // Combine: numbered tasks first (in ascending order), then non-numbered tasks
+  return [...sortedNumbered, ...sortedNonNumbered];
+});
 
 // Toggle collapse/expand for subtasks
 const toggleSubtasksCollapse = (task: Task) => {
