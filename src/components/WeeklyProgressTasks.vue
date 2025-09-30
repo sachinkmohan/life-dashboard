@@ -539,10 +539,15 @@ const sortedTasks = computed(() => {
   return [...sortedNumbered, ...sortedNonNumbered];
 });
 
-// Toggle collapse/expand for subtasks
+// Modified: Toggle collapse/expand for subtasks with proper reactivity
 const toggleSubtasksCollapse = (task: Task) => {
-  // Added: Toggle collapse state
-  task.subtasksCollapsed = !task.subtasksCollapsed;
+  // Find the task in the tasks array and update it directly to ensure reactivity
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    // Update the subtasksCollapsed property in the reactive array to trigger watchers
+    tasks.value[taskIndex].subtasksCollapsed =
+      !tasks.value[taskIndex].subtasksCollapsed;
+  }
 };
 
 // Progress calculation for subtasks
