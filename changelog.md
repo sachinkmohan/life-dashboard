@@ -236,6 +236,14 @@ interface Task {
   - Numbered tasks (1. 2. 3. etc.) always appear at the top in ascending numerical order
   - Non-numbered tasks maintain their original creation order
   - Completed tasks are sorted separately but maintain the same priority rules
+- **Dark Mode Feature**: Added a dark mode toggle functionality
+  - Fixed dark mode toggle button positioned in the top right corner
+  - Button shows sun icon in dark mode and moon icon in light mode
+  - Dark mode applies dark background (#121212) and white text to the body element
+  - Smooth transitions between light and dark modes
+  - Automatic cleanup of dark mode class on component unmount
+  - Vue components remain untouched as requested
+  - App.vue layout preserved without any changes
 
 ### Changed
 
