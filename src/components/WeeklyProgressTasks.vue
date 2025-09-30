@@ -177,8 +177,12 @@
                         <div v-if="task.showSubtaskInput" class="mb-2 ma-5">
                           <v-row class="align-center" no-gutters>
                             <v-col cols="8">
+                              <!-- Modified: Use reactive binding with computed getter/setter for proper reactivity -->
                               <v-text-field
-                                v-model="task.newSubtaskText"
+                                :model-value="getSubtaskInputText(task)"
+                                @update:model-value="
+                                  updateSubtaskInputText(task, $event)
+                                "
                                 label="Add subtask"
                                 density="compact"
                                 hide-details
@@ -221,14 +225,18 @@
                           class="py-0"
                         >
                           <v-list-item
-                            v-for="subtask in task.subtasks"
+                            v-for="(subtask, subtaskIndex) in task.subtasks"
                             :key="subtask.id"
                             class="py-1 px-0"
                             style="min-height: 36px"
                           >
                             <template v-slot:prepend>
+                              <!-- Modified: Use computed getter/setter for proper reactivity -->
                               <v-checkbox
-                                v-model="subtask.done"
+                                :model-value="subtask.done"
+                                @update:model-value="
+                                  updateSubtaskDone(task, subtask.id, $event)
+                                "
                                 color="success"
                                 hide-details
                                 density="compact"
@@ -558,31 +566,55 @@ const getSubtaskProgress = (task: Task) => {
   return Math.round((completed / task.subtasks.length) * 100);
 };
 
-// Added: Toggle subtask input visibility
+// Modified: Toggle subtask input visibility with proper reactivity
 const toggleSubtaskInput = (task: Task) => {
-  task.showSubtaskInput = !task.showSubtaskInput;
-  if (task.showSubtaskInput) {
-    task.newSubtaskText = "";
+  // Find the task in the tasks array and update it directly to ensure reactivity
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    // Update the showSubtaskInput property in the reactive array to trigger watchers
+    tasks.value[taskIndex].showSubtaskInput =
+      !tasks.value[taskIndex].showSubtaskInput;
+    if (tasks.value[taskIndex].showSubtaskInput) {
+      tasks.value[taskIndex].newSubtaskText = "";
+    }
   }
 };
 
-// Added: Cancel subtask input
+// Modified: Cancel subtask input with proper reactivity
 const cancelSubtaskInput = (task: Task) => {
-  task.showSubtaskInput = false;
-  task.newSubtaskText = "";
+  // Find the task in the tasks array and update it directly to ensure reactivity
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    tasks.value[taskIndex].showSubtaskInput = false;
+    tasks.value[taskIndex].newSubtaskText = "";
+  }
 };
 
-// Modified: Add subtask and hide input after adding
+// Modified: Add subtask with proper reactivity and hide input after adding
 const addSubtask = (task: Task) => {
-  if (!task.newSubtaskText || task.newSubtaskText.trim() === "") return;
-  if (!task.subtasks) task.subtasks = [];
-  task.subtasks.push({
+  // Find the task in the tasks array to ensure reactivity
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex === -1) return;
+
+  const currentTask = tasks.value[taskIndex];
+  if (!currentTask.newSubtaskText || currentTask.newSubtaskText.trim() === "")
+    return;
+
+  // Ensure subtasks array exists
+  if (!currentTask.subtasks) {
+    tasks.value[taskIndex].subtasks = [];
+  }
+
+  // Add the new subtask to the reactive array
+  tasks.value[taskIndex].subtasks!.push({
     id: uuidv4(),
-    text: task.newSubtaskText,
+    text: currentTask.newSubtaskText.trim(),
     done: false,
   });
-  task.newSubtaskText = "";
-  task.showSubtaskInput = false; // Added: hide input after adding
+
+  // Clear input and hide the input field
+  tasks.value[taskIndex].newSubtaskText = "";
+  tasks.value[taskIndex].showSubtaskInput = false;
 };
 
 // Added: Start editing a subtask
@@ -591,10 +623,24 @@ const startSubtaskEditing = (subtask: Subtask) => {
   editedSubtaskText.value = subtask.text;
 };
 
-// Added: Save edited subtask
+// Modified: Save edited subtask with proper reactivity
 const saveSubtaskEdit = (task: Task, subtask: Subtask) => {
   if (editedSubtaskText.value.trim() === "") return;
-  subtask.text = editedSubtaskText.value;
+
+  // Find the task in the tasks array to ensure reactivity
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1 && tasks.value[taskIndex].subtasks) {
+    // Find the subtask and update it in the reactive array
+    const subtaskIndex = tasks.value[taskIndex].subtasks!.findIndex(
+      (s) => s.id === subtask.id
+    );
+    if (subtaskIndex !== -1) {
+      tasks.value[taskIndex].subtasks![subtaskIndex].text =
+        editedSubtaskText.value.trim();
+    }
+  }
+
+  // Clear editing state
   editingSubtaskId.value = null;
   editedSubtaskText.value = "";
 };
@@ -605,10 +651,45 @@ const cancelSubtaskEdit = () => {
   editedSubtaskText.value = "";
 };
 
-// Added: Delete subtask function
+// Added: Delete subtask function with proper reactivity
 const deleteSubtask = (task: Task, subtaskId: string) => {
-  if (!task.subtasks) return;
-  task.subtasks = task.subtasks.filter((subtask) => subtask.id !== subtaskId);
+  // Find the task in the tasks array to ensure reactivity
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1 && tasks.value[taskIndex].subtasks) {
+    // Filter out the deleted subtask from the reactive array
+    tasks.value[taskIndex].subtasks = tasks.value[taskIndex].subtasks!.filter(
+      (subtask) => subtask.id !== subtaskId
+    );
+  }
+};
+
+// Added: Update subtask done status with proper reactivity
+const updateSubtaskDone = (task: Task, subtaskId: string, done: boolean) => {
+  // Find the task in the tasks array to ensure reactivity
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1 && tasks.value[taskIndex].subtasks) {
+    // Find the subtask and update it in the reactive array
+    const subtaskIndex = tasks.value[taskIndex].subtasks!.findIndex(
+      (s) => s.id === subtaskId
+    );
+    if (subtaskIndex !== -1) {
+      tasks.value[taskIndex].subtasks![subtaskIndex].done = done;
+    }
+  }
+};
+
+// Added: Get subtask input text with proper reactivity
+const getSubtaskInputText = (task: Task) => {
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  return taskIndex !== -1 ? tasks.value[taskIndex].newSubtaskText || "" : "";
+};
+
+// Added: Update subtask input text with proper reactivity
+const updateSubtaskInputText = (task: Task, text: string) => {
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    tasks.value[taskIndex].newSubtaskText = text;
+  }
 };
 </script>
 
