@@ -1,6 +1,61 @@
 # Changelog
 
-## [Latest] - TypeScript Error Fixes
+## [Latest] - Simplified Deadline Animations
+
+### Removed
+
+- **Pulse Animations**: Removed `urgentPulse` and `gentlePulse` animations for cleaner, less distracting UI
+- **Animation Scaling Effects**: No more scaling transformations on deadline-urgent tasks
+- **Complex Animation Combinations**: Simplified from multiple simultaneous animations to single effects
+
+### Modified
+
+- **Due Today Animation**: Now uses only spotlight background animation (3s cycle)
+- **Due Tomorrow Styling**: Shows only blue border color without any animation
+- **Hover Behavior**: Simplified hover effects without animation pause states
+
+### Kept
+
+- **Spotlight Effect**: Subtle background color animation for tasks due today
+- **Border Color Indicators**: Orange border for today, blue border for tomorrow
+- **Dynamic Animation Classes**: `getTaskAnimationClass()` function still determines styling based on deadline urgency
+
+### Technical Changes
+
+- **CSS Simplification**: Removed `urgentPulse` and `gentlePulse` keyframe definitions
+- **Class Updates**: `.task-due-today` now only applies spotlight animation and border color
+- **Performance Improvement**: Fewer CSS animations running simultaneously reduces resource usage
+
+## [Previous] - Deadline Urgency Animations
+
+### Added
+
+- **Pulse Animation**: Tasks due today display an urgent pulse effect with orange accent
+- **Spotlight Animation**: Tasks due today also feature a subtle background spotlight effect
+- **Gentle Pulse**: Tasks due tomorrow show a gentler blue pulse animation
+- **Dynamic Animation Classes**: `getTaskAnimationClass()` function determines appropriate animation based on deadline urgency
+
+### Enhanced
+
+- **Visual Urgency Indicators**: Animations provide immediate visual cues for deadline proximity
+- **Border Color Changes**: Task cards show colored borders matching their urgency level
+- **Hover Interaction**: Animations pause on hover to prevent distraction during interaction
+- **Performance Optimized**: Animations only apply to incomplete tasks with deadlines
+
+### Technical Implementation
+
+- **CSS Keyframes**: Three animation types - `urgentPulse`, `spotlight`, and `gentlePulse`
+- **Conditional Styling**: Animations applied via dynamic class binding based on `getDaysUntilDeadline()`
+- **Animation Timing**: Due today (2s urgent pulse + 3s spotlight), Due tomorrow (3s gentle pulse)
+- **User Experience**: Animations pause on hover to allow comfortable interaction
+
+### Animation Details
+
+- **Due Today**: Orange border + urgent pulse (scale 1.02) + spotlight background effect
+- **Due Tomorrow**: Blue border + gentle pulse (scale 1.01) with blue shadow
+- **Other Tasks**: No animations, maintaining clean interface for non-urgent items
+
+## [Previous] - TypeScript Error Fixes
 
 ### Fixed
 

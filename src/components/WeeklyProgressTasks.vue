@@ -36,7 +36,12 @@
           <template v-if="tasks.length > 0">
             <!-- Modified: Individual cards for each task instead of single list -->
             <div v-for="task in sortedTasks" :key="task.id" class="mb-3">
-              <v-card variant="outlined" class="task-block">
+              <!-- Modified: Add dynamic animation classes based on deadline urgency -->
+              <v-card
+                variant="outlined"
+                class="task-block"
+                :class="getTaskAnimationClass(task)"
+              >
                 <v-list density="compact">
                   <v-list-item class="py-1 px-4">
                     <!-- Removed: Main task checkbox (v-slot:prepend section) -->
@@ -872,6 +877,21 @@ const updateSubtaskInputText = (task: Task, text: string) => {
     tasks.value[taskIndex].newSubtaskText = text;
   }
 };
+
+// Added: Get animation class based on task deadline urgency
+const getTaskAnimationClass = (task: Task) => {
+  // Only animate incomplete tasks with deadlines
+  if (task.done || !task.deadline) return "";
+
+  const daysUntil = getDaysUntilDeadline(task);
+  if (daysUntil === null) return "";
+
+  // Apply animations based on urgency
+  if (daysUntil === 0) return "task-due-today"; // Due today - pulse + spotlight
+  if (daysUntil === 1) return "task-due-tomorrow"; // Due tomorrow - gentle pulse
+
+  return "";
+};
 </script>
 
 <style scoped>
@@ -911,5 +931,13 @@ const updateSubtaskInputText = (task: Task, text: string) => {
 /* Added: Deadline info styling */
 .deadline-info {
   margin-top: 4px;
+}
+
+.task-due-today {
+  border-color: #ff9800 !important;
+}
+
+.task-due-tomorrow {
+  border-color: #2196f3 !important;
 }
 </style>
