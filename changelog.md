@@ -1,5 +1,103 @@
 # Changelog
 
+## [Latest] - TypeScript Error Fixes
+
+### Fixed
+
+- **Missing Functions**: Added missing `closeDatePicker` and `removeDeadline` functions to resolve TypeScript compilation errors
+  - `closeDatePicker`: Closes the date picker modal and resets selected date
+  - `removeDeadline`: Removes deadline from task and closes date picker
+  - Both functions properly update reactive state and clear UI components
+
+### Technical Details
+
+- **Root Cause**: Functions were referenced in template but not defined in script setup
+- **Solution**: Added proper function implementations with reactive state management
+- **Impact**: Eliminates TypeScript compilation errors and ensures proper functionality
+
+## [Previous] - Finalized Deadline Feature
+
+### Removed
+
+- **Debug Logging**: Removed temporary console.log statements from deadline functions
+  - Cleaned up `getDaysUntilDeadline` function
+  - Cleaned up `setDeadline` function
+  - Code is now production-ready without debug output
+
+### Confirmed Working
+
+- **Deadline Display**: Correctly shows "Due today" when deadline is set to today's date
+- **Tomorrow Display**: Correctly shows "Due tomorrow" when deadline is set to tomorrow
+- **Future Dates**: Correctly shows "X days" for dates beyond tomorrow
+- **Timezone Handling**: All date calculations work properly in local timezone
+
+## [Previous] - Debug and Complete Timezone Fix
+
+### Fixed
+
+- **Date Picker Timezone Issues**: Fixed remaining timezone issues in date picker functions
+  - `toggleDatePicker`: Now parses existing deadline dates in local timezone when opening picker
+  - `setDeadline`: Uses manual date formatting to avoid timezone conversion issues
+  - Added debug logging to `getDaysUntilDeadline` to track date calculation issues
+
+### Added
+
+- **Debug Logging**: Temporary console logs to diagnose date calculation problems
+  - Shows task deadline, today's date, and calculated difference
+  - Helps identify where timezone conversion is occurring
+
+### Technical Details
+
+- **Root Cause**: Multiple functions were still using Date constructors that could cause UTC conversion
+- **Solution**: Consistent local timezone parsing across all date-related functions
+- **Impact**: Successfully achieved correct date display behavior
+
+## [Earlier] - Complete Timezone Date Fix
+
+### Fixed
+
+- **Date Formatting Timezone Issue**: Fixed `formatDeadlineText` function to use timezone-safe date parsing
+  - Applied same local timezone parsing approach as used in `getDaysUntilDeadline`
+  - Prevents UTC conversion issues that caused "today" deadlines to show as "overdue yesterday"
+  - Ensures consistent date handling across all deadline-related functions
+
+### Technical Details
+
+- **Root Cause**: `formatDeadlineText` was still using `new Date(task.deadline)` which could interpret dates in UTC
+- **Solution**: Parse date string components manually and create Date object in local timezone
+- **Impact**: Now correctly displays "Due today" when deadline is set to today's date
+
+## [Original] - Date Calculation Fix
+
+### Fixed
+
+- **Deadline Date Calculation**: Fixed off-by-one error in deadline calculation
+  - Setting today's date now correctly shows "Due today" instead of "Overdue"
+  - Setting tomorrow's date now shows "Due tomorrow" instead of "Due today"
+  - Changed from `Math.ceil` to `Math.floor` in `getDaysUntilDeadline` function for accurate day counting
+  - Ensures proper date logic: same day = 0 days, tomorrow = 1 day, day after = 2 days
+- **Action Button Group**: Added calendar icon button for deadline management
+- **Task Display**: Enhanced task cards with deadline information chips and urgency indicators
+
+### Removed
+
+- **Number-Based Sorting**: Removed the previous sorting system based on numbered task titles
+- **extractTaskNumber Function**: No longer needed with new deadline-based sorting
+
+### Technical Improvements
+
+- **Date Validation**: Date picker restricted to current week (today through next Sunday)
+- **Reactive State Management**: Proper reactivity for deadline-related state changes
+- **LocalStorage Compatibility**: Backward compatible with existing tasks (adds deadline fields seamlessly)
+- **Clean UI Design**: Maximized use of Vuetify components for consistent styling and UX
+
+### UI/UX Enhancements
+
+- **Visual Hierarchy**: Clear deadline urgency through color-coded chips and icons
+- **Intuitive Controls**: Easy-to-use date picker with set/remove deadline options
+- **Responsive Design**: Maintains clean layout across different screen sizes
+- **Accessibility**: Proper color contrast and icon usage for deadline status indication
+
 ## DailyTasks Component Implementation
 
 ### Features Implemented ✅
