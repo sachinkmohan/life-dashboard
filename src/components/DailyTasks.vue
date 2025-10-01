@@ -33,16 +33,27 @@
 
       <v-row>
         <v-col cols="12">
-          <v-btn
-            v-if="tasks.length > 0"
-            @click="uncheckAll"
-            color="secondary"
-            variant="outlined"
-            class="mb-2"
-            size="small"
-          >
-            Uncheck All
-          </v-btn>
+          <div class="d-flex align-center mb-2" v-if="tasks.length > 0">
+            <!-- Uncheck All Button -->
+            <v-btn
+              @click="uncheckAll"
+              color="secondary"
+              variant="outlined"
+              size="small"
+              class="mr-2"
+            >
+              Uncheck All
+            </v-btn>
+            <!-- Reset Count Button -->
+            <v-btn
+              @click="showResetDialog = true"
+              color="warning"
+              variant="outlined"
+              size="small"
+            >
+              Reset Count
+            </v-btn>
+          </div>
           <template v-if="tasks.length > 0">
             <v-card variant="outlined">
               <v-list>
@@ -56,6 +67,7 @@
                       v-model="task.done"
                       color="success"
                       hide-details
+                      @update:model-value="onTaskCheck(task)"
                     />
                   </template>
                   <v-list-item-title
@@ -68,6 +80,11 @@
                     class="text-wrap break-word"
                   >
                     {{ task.text }}
+                    <!-- Show count badge -->
+                    <span
+                      class="task-count-badge"
+                      v-if="task.count > 0"
+                    >{{ task.count }}x</span>
                   </v-list-item-title>
                   <v-text-field
                     v-else
@@ -122,6 +139,24 @@
           </template>
         </v-col>
       </v-row>
+      <!-- Reset Count Confirmation Dialog -->
+      <v-dialog v-model="showResetDialog" max-width="350">
+        <v-card>
+          <v-card-title class="headline">Reset All Counts?</v-card-title>
+          <v-card-text>
+            Are you sure you want to reset all task counts to 0?
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn color="grey" variant="text" @click="showResetDialog = false">
+              Cancel
+            </v-btn>
+            <v-btn color="warning" variant="text" @click="resetAllCounts">
+              Reset
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-container>
   </div>
 </template>
@@ -130,20 +165,24 @@
 import { ref, watch, onMounted, computed } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
+// Add count property to Task interface
 interface Task {
   id: string;
   text: string;
   done: boolean;
+  count: number; // Added: count of completions
 }
 const newTask = ref("");
 const tasks = ref<Task[]>([]);
 const editingTaskId = ref<string | null>(null);
 const editedTaskText = ref("");
+const showResetDialog = ref(false); // For reset count dialog
 
 // Add task function
 const addTask = () => {
   if (newTask.value.trim() === "") return;
-  tasks.value.push({ id: uuidv4(), text: newTask.value, done: false });
+  // Added: initialize count to 0
+  tasks.value.push({ id: uuidv4(), text: newTask.value, done: false, count: 0 });
   newTask.value = "";
 };
 
@@ -173,10 +212,25 @@ const cancelEdit = () => {
   editedTaskText.value = "";
 };
 
+// When a task is checked, increment count if it transitions from not done to done
+const onTaskCheck = (task: Task) => {
+  // Only increment if marking as done
+  if (task.done) {
+    task.count = (task.count || 0) + 1;
+  }
+};
+
 // Load tasks from localStorage on component mount
 onMounted(() => {
   const savedTasks = localStorage.getItem("tasks");
-  if (savedTasks) tasks.value = JSON.parse(savedTasks);
+  if (savedTasks) {
+    // Added: ensure count property exists for backward compatibility
+    const loaded = JSON.parse(savedTasks);
+    tasks.value = loaded.map((t: any) => ({
+      ...t,
+      count: typeof t.count === "number" ? t.count : 0,
+    }));
+  }
 });
 
 // Watch for task changes and update localStorage
@@ -193,9 +247,34 @@ const sortedTasks = computed(() =>
 );
 
 const uncheckAll = () => {
+  // Uncheck all tasks, but do not reset count
   tasks.value = tasks.value.map((task) => ({
     ...task,
     done: false,
   }));
 };
+
+// Reset all counts to 0, with confirmation
+const resetAllCounts = () => {
+  tasks.value = tasks.value.map((task) => ({
+    ...task,
+    count: 0,
+  }));
+  showResetDialog.value = false;
+};
 </script>
+
+<style scoped>
+/* Added: Styling for the count badge */
+.task-count-badge {
+  background: #f5f5f5;
+  color: #1976d2;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.85em;
+  margin-left: 8px;
+  font-weight: 600;
+  vertical-align: middle;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+</style>

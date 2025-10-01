@@ -8,6 +8,10 @@
   - Extracts "YYYY-MM-DD" string parsing into reusable utility function
   - Returns `Date` object in local timezone to avoid UTC conversion issues
   - Handles month offset (0-indexed) consistently across all usage
+- Added a count badge next to each task showing how many times it has been completed (e.g., "2x").
+- Count increments each time a task is checked after being unchecked.
+- Added a "Reset Count" button next to "Uncheck All" with a confirmation dialog to reset all counts to 0.
+- Improved visual hierarchy and styling for the count badge and controls.
 
 ### Refactored
 
