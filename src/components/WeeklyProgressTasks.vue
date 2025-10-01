@@ -479,15 +479,6 @@ const getDaysUntilDeadline = (task: Task) => {
   const timeDiff = deadlineLocal.getTime() - todayLocal.getTime();
   const daysDiff = Math.round(timeDiff / (1000 * 3600 * 24));
 
-  // Added: Debug logging to see what's happening
-  console.log("Debug - getDaysUntilDeadline:", {
-    taskDeadline: task.deadline,
-    todayLocal: todayLocal.toISOString().split("T")[0],
-    deadlineLocal: deadlineLocal.toISOString().split("T")[0],
-    timeDiff: timeDiff,
-    daysDiff: daysDiff,
-  });
-
   return daysDiff;
 };
 
@@ -547,7 +538,7 @@ const formatDeadlineText = (task: Task) => {
   return `${daysUntil} days (${formattedDate})`;
 };
 
-// Modified: Add debugging to toggleDatePicker function
+// Modified: Remove debug logging from toggleDatePicker function
 const toggleDatePicker = (task: Task) => {
   const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
   if (taskIndex !== -1) {
@@ -566,7 +557,7 @@ const toggleDatePicker = (task: Task) => {
   }
 };
 
-// Modified: Fix setDeadline to ensure proper date formatting
+// Modified: Remove debug logging from setDeadline function
 const setDeadline = (task: Task) => {
   if (!selectedDate.value) return;
 
@@ -577,12 +568,6 @@ const setDeadline = (task: Task) => {
     const month = String(selectedDate.value.getMonth() + 1).padStart(2, "0");
     const day = String(selectedDate.value.getDate()).padStart(2, "0");
     const formattedDate = `${year}-${month}-${day}`;
-
-    // Added: Debug logging
-    console.log("Debug - setDeadline:", {
-      selectedDate: selectedDate.value,
-      formattedDate: formattedDate,
-    });
 
     tasks.value[taskIndex].deadline = formattedDate;
     tasks.value[taskIndex].showDatePicker = false;
