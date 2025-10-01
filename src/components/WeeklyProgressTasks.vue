@@ -483,6 +483,15 @@ const getNextSundayDate = () => {
   return nextSunday.toISOString().split("T")[0];
 };
 
+// Added: Helper function to parse date string in local timezone to avoid UTC conversion issues
+const parseLocalDate = (deadlineString: string): Date => {
+  const deadlineParts = deadlineString.split("-");
+  const deadlineYear = parseInt(deadlineParts[0]);
+  const deadlineMonth = parseInt(deadlineParts[1]) - 1; // Month is 0-indexed
+  const deadlineDay = parseInt(deadlineParts[2]);
+  return new Date(deadlineYear, deadlineMonth, deadlineDay);
+};
+
 // Modified: Fix date calculation with proper timezone handling and debugging
 const getDaysUntilDeadline = (task: Task) => {
   if (!task.deadline) return null;
@@ -494,12 +503,8 @@ const getDaysUntilDeadline = (task: Task) => {
   const day = today.getDate();
   const todayLocal = new Date(year, month, day); // Local date at midnight
 
-  // Parse deadline date in local timezone
-  const deadlineParts = task.deadline.split("-");
-  const deadlineYear = parseInt(deadlineParts[0]);
-  const deadlineMonth = parseInt(deadlineParts[1]) - 1; // Month is 0-indexed
-  const deadlineDay = parseInt(deadlineParts[2]);
-  const deadlineLocal = new Date(deadlineYear, deadlineMonth, deadlineDay);
+  // Modified: Use parseLocalDate helper for consistent timezone handling
+  const deadlineLocal = parseLocalDate(task.deadline);
 
   // Calculate difference in days
   const timeDiff = deadlineLocal.getTime() - todayLocal.getTime();
@@ -546,12 +551,8 @@ const formatDeadlineText = (task: Task) => {
   const daysUntil = getDaysUntilDeadline(task);
   if (daysUntil === null) return "No deadline";
 
-  // Fixed: Parse deadline date in local timezone to avoid UTC conversion issues
-  const deadlineParts = task.deadline.split("-");
-  const deadlineYear = parseInt(deadlineParts[0]);
-  const deadlineMonth = parseInt(deadlineParts[1]) - 1; // Month is 0-indexed
-  const deadlineDay = parseInt(deadlineParts[2]);
-  const deadlineDate = new Date(deadlineYear, deadlineMonth, deadlineDay);
+  // Modified: Use parseLocalDate helper for consistent timezone handling
+  const deadlineDate = parseLocalDate(task.deadline);
 
   const formattedDate = deadlineDate.toLocaleDateString("en-US", {
     month: "short",
@@ -571,12 +572,8 @@ const toggleDatePicker = (task: Task) => {
     tasks.value[taskIndex].showDatePicker =
       !tasks.value[taskIndex].showDatePicker;
     if (tasks.value[taskIndex].showDatePicker && task.deadline) {
-      // Fixed: Parse deadline in local timezone to avoid UTC conversion
-      const deadlineParts = task.deadline.split("-");
-      const deadlineYear = parseInt(deadlineParts[0]);
-      const deadlineMonth = parseInt(deadlineParts[1]) - 1; // Month is 0-indexed
-      const deadlineDay = parseInt(deadlineParts[2]);
-      selectedDate.value = new Date(deadlineYear, deadlineMonth, deadlineDay);
+      // Modified: Use parseLocalDate helper for consistent timezone handling
+      selectedDate.value = parseLocalDate(task.deadline);
     } else if (!tasks.value[taskIndex].showDatePicker) {
       selectedDate.value = null;
     }
