@@ -557,6 +557,15 @@ const toggleDatePicker = (task: Task) => {
   }
 };
 
+// Added: Close date picker function
+const closeDatePicker = (task: Task) => {
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    tasks.value[taskIndex].showDatePicker = false;
+    selectedDate.value = null;
+  }
+};
+
 // Modified: Remove debug logging from setDeadline function
 const setDeadline = (task: Task) => {
   if (!selectedDate.value) return;
@@ -570,6 +579,16 @@ const setDeadline = (task: Task) => {
     const formattedDate = `${year}-${month}-${day}`;
 
     tasks.value[taskIndex].deadline = formattedDate;
+    tasks.value[taskIndex].showDatePicker = false;
+    selectedDate.value = null;
+  }
+};
+
+// Added: Remove deadline from task function
+const removeDeadline = (task: Task) => {
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    delete tasks.value[taskIndex].deadline;
     tasks.value[taskIndex].showDatePicker = false;
     selectedDate.value = null;
   }
