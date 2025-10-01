@@ -50,9 +50,13 @@
                             class="task-title-container"
                           >
                             <div class="d-flex align-center">
-                              <!-- Added: Decorative icon for main task -->
-                              <v-icon color="primary" size="small" class="mr-2">
-                                mdi-star-outline
+                              <!-- Modified: Changed decorative icon based on deadline urgency -->
+                              <v-icon 
+                                :color="getDeadlineUrgencyColor(task)" 
+                                size="small" 
+                                class="mr-2"
+                              >
+                                {{ getDeadlineIcon(task) }}
                               </v-icon>
                               <!-- Added: Decorated task title with better styling -->
                               <v-list-item-title
@@ -66,6 +70,18 @@
                                 {{ task.text }}
                               </v-list-item-title>
                             </div>
+                            <!-- Added: Deadline display with days until deadline -->
+                            <div class="deadline-info mt-1">
+                              <v-chip
+                                :color="getDeadlineChipColor(task)"
+                                :variant="task.deadline ? 'flat' : 'outlined'"
+                                size="small"
+                                class="mr-2"
+                              >
+                                <v-icon start size="x-small">mdi-calendar</v-icon>
+                                {{ formatDeadlineText(task) }}
+                              </v-chip>
+                            </div>
                             <!-- Added: Decorative underline for main task -->
                             <div class="task-underline"></div>
                           </div>
@@ -78,10 +94,18 @@
                             style="max-width: 250px"
                           />
                         </div>
-                        <!-- Modified: Added show/hide toggle button to the action buttons group -->
+                        <!-- Modified: Added date picker button to the action buttons group -->
                         <div class="d-flex" style="gap: 4px">
                           <!-- Modified: Grouped action buttons with consistent styling and spacing -->
                           <v-btn-group variant="outlined" density="compact">
+                            <!-- Added: Date picker toggle button -->
+                            <v-btn
+                              size="small"
+                              @click="toggleDatePicker(task)"
+                              :color="task.deadline ? 'success' : 'grey-darken-1'"
+                              icon="mdi-calendar"
+                              min-width="32"
+                            />
                             <!-- Added: mx-1 class for 2px spacing between buttons while preserving group border -->
                             <v-btn
                               size="small"
@@ -138,6 +162,49 @@
                             />
                           </v-btn-group>
                         </div>
+                      </div>
+
+                      <!-- Added: Date picker component -->
+                      <div v-if="task.showDatePicker" class="mt-3">
+                        <v-card variant="outlined" class="pa-3">
+                          <div class="d-flex align-center justify-space-between mb-2">
+                            <h4 class="text-subtitle-2">Set Deadline</h4>
+                            <v-btn
+                              icon="mdi-close"
+                              size="x-small"
+                              variant="text"
+                              @click="closeDatePicker(task)"
+                            />
+                          </div>
+                          <v-date-picker
+                            v-model="selectedDate"
+                            :min="getCurrentDate()"
+                            :max="getNextSundayDate()"
+                            color="primary"
+                            elevation="0"
+                            hide-header
+                          />
+                          <div class="d-flex justify-end mt-2" style="gap: 8px">
+                            <v-btn
+                              v-if="task.deadline"
+                              color="error"
+                              variant="outlined"
+                              size="small"
+                              @click="removeDeadline(task)"
+                            >
+                              Remove
+                            </v-btn>
+                            <v-btn
+                              color="success"
+                              variant="flat"
+                              size="small"
+                              @click="setDeadline(task)"
+                              :disabled="!selectedDate"
+                            >
+                              Set Deadline
+                            </v-btn>
+                          </div>
+                        </v-card>
                       </div>
 
                       <!-- Modified: Always show progress bar and percentage text for consistent UI -->
@@ -345,15 +412,20 @@ interface Subtask {
   text: string;
   done: boolean;
 }
+
+// Modified: Added deadline field to Task interface
 interface Task {
   id: string;
   text: string;
   done: boolean;
+  deadline?: string; // Added: ISO date string for deadline
   subtasks?: Subtask[];
   subtasksCollapsed?: boolean; // false = expanded by default
   newSubtaskText?: string; // for input binding
   showSubtaskInput?: boolean; // Added: control subtask input visibility
+  showDatePicker?: boolean; // Added: control date picker visibility
 }
+
 const newTask = ref("");
 const tasks = ref<Task[]>([]);
 const editingTaskId = ref<string | null>(null);
@@ -361,6 +433,132 @@ const editedTaskText = ref("");
 // Added: State variables for subtask editing
 const editingSubtaskId = ref<string | null>(null);
 const editedSubtaskText = ref("");
+// Added: State variable for date picker
+const selectedDate = ref<Date | null>(null);
+
+// Added: Get current date in YYYY-MM-DD format
+const getCurrentDate = () => {
+  return new Date().toISOString().split('T')[0];
+};
+
+// Added: Get next Sunday date (end of current week)
+const getNextSundayDate = () => {
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+  const nextSunday = new Date(today);
+  nextSunday.setDate(today.getDate() + daysUntilSunday);
+  return nextSunday.toISOString().split('T')[0];
+};
+
+// Added: Calculate days until deadline
+const getDaysUntilDeadline = (task: Task) => {
+  if (!task.deadline) return null;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const deadline = new Date(task.deadline);
+  deadline.setHours(0, 0, 0, 0);
+  
+  const timeDiff = deadline.getTime() - today.getTime();
+  const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+  
+  return daysDiff;
+};
+
+// Added: Get deadline urgency color for icon
+const getDeadlineUrgencyColor = (task: Task) => {
+  const daysUntil = getDaysUntilDeadline(task);
+  if (daysUntil === null) return 'grey';
+  if (daysUntil < 0) return 'error';
+  if (daysUntil === 0) return 'warning';
+  if (daysUntil === 1) return 'orange';
+  return 'primary';
+};
+
+// Added: Get deadline icon based on urgency
+const getDeadlineIcon = (task: Task) => {
+  const daysUntil = getDaysUntilDeadline(task);
+  if (daysUntil === null) return 'mdi-star-outline';
+  if (daysUntil < 0) return 'mdi-alert-circle';
+  if (daysUntil === 0) return 'mdi-clock-alert';
+  if (daysUntil <= 2) return 'mdi-clock-fast';
+  return 'mdi-clock-outline';
+};
+
+// Added: Get deadline chip color
+const getDeadlineChipColor = (task: Task) => {
+  const daysUntil = getDaysUntilDeadline(task);
+  if (daysUntil === null) return 'grey-lighten-1';
+  if (daysUntil < 0) return 'error';
+  if (daysUntil === 0) return 'warning';
+  if (daysUntil === 1) return 'orange';
+  if (daysUntil <= 2) return 'blue';
+  return 'success';
+};
+
+// Added: Format deadline text for display
+const formatDeadlineText = (task: Task) => {
+  if (!task.deadline) return 'No deadline';
+  
+  const daysUntil = getDaysUntilDeadline(task);
+  if (daysUntil === null) return 'No deadline';
+  
+  const deadlineDate = new Date(task.deadline);
+  const formattedDate = deadlineDate.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric' 
+  });
+  
+  if (daysUntil < 0) return `Overdue (${formattedDate})`;
+  if (daysUntil === 0) return `Due today (${formattedDate})`;
+  if (daysUntil === 1) return `Due tomorrow (${formattedDate})`;
+  return `${daysUntil} days (${formattedDate})`;
+};
+
+// Added: Toggle date picker visibility
+const toggleDatePicker = (task: Task) => {
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    tasks.value[taskIndex].showDatePicker = !tasks.value[taskIndex].showDatePicker;
+    if (tasks.value[taskIndex].showDatePicker && task.deadline) {
+      selectedDate.value = new Date(task.deadline);
+    } else if (!tasks.value[taskIndex].showDatePicker) {
+      selectedDate.value = null;
+    }
+  }
+};
+
+// Added: Close date picker
+const closeDatePicker = (task: Task) => {
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    tasks.value[taskIndex].showDatePicker = false;
+    selectedDate.value = null;
+  }
+};
+
+// Added: Set deadline for task
+const setDeadline = (task: Task) => {
+  if (!selectedDate.value) return;
+  
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    tasks.value[taskIndex].deadline = selectedDate.value.toISOString().split('T')[0];
+    tasks.value[taskIndex].showDatePicker = false;
+    selectedDate.value = null;
+  }
+};
+
+// Added: Remove deadline from task
+const removeDeadline = (task: Task) => {
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    delete tasks.value[taskIndex].deadline;
+    tasks.value[taskIndex].showDatePicker = false;
+    selectedDate.value = null;
+  }
+};
 
 // Add task function - Modified to handle comma-separated input and numbered lists
 const addTask = () => {
@@ -374,56 +572,17 @@ const addTask = () => {
 
   if (parts.length === 0) return;
 
-  // Function to extract number and text from a string like "1. Task name"
-  const parseNumberedItem = (item: string) => {
-    const match = item.match(/^(\d+)\.\s*(.+)$/);
-    if (match) {
-      return {
-        number: parseInt(match[1], 10),
-        text: match[2].trim(),
-        hasNumber: true,
-      };
-    }
-    return {
-      number: 0,
-      text: item,
-      hasNumber: false,
-    };
-  };
-
-  // Parse all parts to extract numbers and text
-  const parsedParts = parts.map(parseNumberedItem);
-
-  // Check if any items have numbers - if so, sort by numbers
-  const hasAnyNumbers = parsedParts.some((part) => part.hasNumber);
-
-  let sortedParts = parsedParts;
-  if (hasAnyNumbers) {
-    // Sort by number, putting non-numbered items at the end
-    sortedParts = parsedParts.sort((a, b) => {
-      if (a.hasNumber && b.hasNumber) {
-        return a.number - b.number;
-      }
-      if (a.hasNumber && !b.hasNumber) {
-        return -1;
-      }
-      if (!a.hasNumber && b.hasNumber) {
-        return 1;
-      }
-      return 0; // both don't have numbers, maintain original order
-    });
-  }
-
+  // Modified: Simplified parsing - removed number-based sorting logic
   // First part becomes the main task title
-  const mainTaskTitle = sortedParts[0].text;
+  const mainTaskTitle = parts[0];
 
   // Remaining parts become subtasks
-  const subtaskTexts = sortedParts.slice(1);
+  const subtaskTexts = parts.slice(1);
 
   // Create subtasks array from the remaining parts
-  const subtasks = subtaskTexts.map((item) => ({
+  const subtasks = subtaskTexts.map((text) => ({
     id: uuidv4(),
-    text: item.text,
+    text: text,
     done: false,
   }));
 
@@ -436,6 +595,7 @@ const addTask = () => {
     subtasksCollapsed: false, // Show subtasks by default when they exist
     newSubtaskText: "",
     showSubtaskInput: false,
+    showDatePicker: false, // Added: Initialize date picker state
   });
 
   newTask.value = "";
@@ -479,12 +639,13 @@ onMounted(() => {
   const savedTasks = localStorage.getItem("weeklyProgressTasks");
   if (savedTasks) {
     tasks.value = JSON.parse(savedTasks);
-    // Added: Ensure existing tasks have the subtasksCollapsed property
+    // Modified: Ensure existing tasks have all required properties including deadline fields
     tasks.value = tasks.value.map((task) => ({
       ...task,
       subtasksCollapsed: task.subtasksCollapsed ?? true, // default to collapsed if not set
       subtasks: task.subtasks || [],
       showSubtaskInput: false,
+      showDatePicker: false, // Added: Initialize date picker state for existing tasks
     }));
   }
 });
@@ -499,56 +660,30 @@ watch(
   { deep: true }
 );
 
-// Added: Function to extract number from task title for sorting
-const extractTaskNumber = (taskText: string) => {
-  const match = taskText.match(/^(\d+)\.\s*/);
-  return match ? parseInt(match[1], 10) : null;
-};
-
-// Modified: Enhanced sorting to prioritize numbered tasks in ascending order
+// Modified: Replace number-based sorting with deadline-based sorting
 const sortedTasks = computed(() => {
-  // First separate numbered and non-numbered tasks
-  const numberedTasks: Task[] = [];
-  const nonNumberedTasks: Task[] = [];
+  return [...tasks.value].sort((a, b) => {
+    // First sort by completion status (incomplete tasks first)
+    const completionDiff = Number(a.done) - Number(b.done);
+    if (completionDiff !== 0) return completionDiff;
 
-  tasks.value.forEach((task, originalIndex) => {
-    const taskNumber = extractTaskNumber(task.text);
-    if (taskNumber !== null) {
-      // Add original index to preserve order for same completion status
-      numberedTasks.push({ ...task, originalIndex } as Task & {
-        originalIndex: number;
-      });
-    } else {
-      nonNumberedTasks.push({ ...task, originalIndex } as Task & {
-        originalIndex: number;
-      });
+    // Then sort by deadline urgency for incomplete tasks
+    if (!a.done && !b.done) {
+      const aDaysUntil = getDaysUntilDeadline(a);
+      const bDaysUntil = getDaysUntilDeadline(b);
+      
+      // Tasks with no deadline go to the bottom
+      if (aDaysUntil === null && bDaysUntil === null) return 0;
+      if (aDaysUntil === null) return 1;
+      if (bDaysUntil === null) return -1;
+      
+      // Sort by days until deadline (ascending - most urgent first)
+      return aDaysUntil - bDaysUntil;
     }
+
+    // For completed tasks, maintain original order
+    return 0;
   });
-
-  // Sort numbered tasks by: 1) completion status 2) number ascending
-  const sortedNumbered = numberedTasks.sort((a, b) => {
-    // First sort by completion status (incomplete tasks first)
-    const completionDiff = Number(a.done) - Number(b.done);
-    if (completionDiff !== 0) return completionDiff;
-
-    // Then sort by task number in ascending order
-    const aNumber = extractTaskNumber(a.text) || 0;
-    const bNumber = extractTaskNumber(b.text) || 0;
-    return aNumber - bNumber;
-  });
-
-  // Sort non-numbered tasks by: 1) completion status 2) original order
-  const sortedNonNumbered = nonNumberedTasks.sort((a, b) => {
-    // First sort by completion status (incomplete tasks first)
-    const completionDiff = Number(a.done) - Number(b.done);
-    if (completionDiff !== 0) return completionDiff;
-
-    // Then maintain original order for same completion status
-    return (a as any).originalIndex - (b as any).originalIndex;
-  });
-
-  // Combine: numbered tasks first (in ascending order), then non-numbered tasks
-  return [...sortedNumbered, ...sortedNonNumbered];
 });
 
 // Modified: Toggle collapse/expand for subtasks with proper reactivity
@@ -737,5 +872,10 @@ const updateSubtaskInputText = (task: Task, text: string) => {
   background: linear-gradient(90deg, #1976d2 0%, transparent 50%);
   margin-top: 4px;
   width: 60%;
+}
+
+/* Added: Deadline info styling */
+.deadline-info {
+  margin-top: 4px;
 }
 </style>
