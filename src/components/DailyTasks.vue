@@ -61,6 +61,7 @@
                   v-for="task in sortedTasks"
                   :key="task.id"
                   lines="one"
+                  class="py-1"
                 >
                   <template v-slot:prepend>
                     <v-checkbox
@@ -70,6 +71,7 @@
                       @update:model-value="onTaskCheck(task)"
                     />
                   </template>
+                  <!-- Fix: Always use v-list-item-title for main content -->
                   <v-list-item-title
                     v-if="editingTaskId !== task.id"
                     :style="
@@ -77,11 +79,15 @@
                         ? 'text-decoration: line-through; color: #888;'
                         : ''
                     "
-                    class="text-wrap break-word"
+                    class="d-flex flex-row align-center justify-space-between w-100 border-b text-wrap break-word"
+                    style="border-color: #eee !important"
                   >
-                    {{ task.text }}
-                    <!-- Always show count badge, even if 0 -->
-                    <span class="task-count-badge">{{ task.count }}x</span>
+                    <span class="text-body-1 text-left">{{ task.text }}</span>
+                    <span
+                      class="text-body-2 font-weight-bold text-primary ml-2 text-right task-count-badge"
+                    >
+                      {{ task.count }}x
+                    </span>
                   </v-list-item-title>
                   <v-text-field
                     v-else
