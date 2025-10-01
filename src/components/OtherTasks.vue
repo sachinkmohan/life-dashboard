@@ -65,7 +65,7 @@
                         ? 'text-decoration: line-through; color: #888;'
                         : ''
                     "
-                    class="text-wrap break-word"
+                    class="text-wrap break-word border-b"
                   >
                     {{ task.text }}
                   </v-list-item-title>

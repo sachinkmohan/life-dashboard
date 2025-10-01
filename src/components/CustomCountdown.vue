@@ -1,5 +1,5 @@
 <template>
-  <v-app class="ml-15">
+  <div>
     <v-btn
       @click="isHidden = !isHidden"
       class="ma-5"
@@ -61,7 +61,7 @@
         </v-col>
       </v-row>
     </v-container>
-  </v-app>
+  </div>
 </template>
 
 <script setup lang="ts">
