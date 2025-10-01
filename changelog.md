@@ -1,6 +1,32 @@
 # Changelog
 
-## [Latest] - Simplified Deadline Animations
+## [Latest] - Date Picker Layout Optimization
+
+### Enhanced
+
+- **Date Picker Layout**: Redesigned date picker for better visual hierarchy and compactness
+  - Moved action buttons directly below the calendar instead of bottom-right corner
+  - Centered date picker and buttons for better visual balance
+  - Reduced date picker width to 280px for more compact display
+  - Added maximum width constraint (320px) to date picker card container
+
+### Improved
+
+- **Visual Hierarchy**: Better organization of date picker elements
+  - Calendar dates at the top
+  - Action buttons (Remove/Set Deadline) immediately below dates
+  - Centered alignment for all elements within the picker
+- **User Experience**: More intuitive button placement closer to date selection area
+- **Responsive Design**: Compact layout works better on different screen sizes
+
+### Technical Changes
+
+- **CSS Classes**: Added `.date-picker-card` styling for layout constraints
+- **Flexbox Layout**: Used `flex-column` and `align-center` for vertical stacking
+- **Width Constraints**: Set specific width (280px) for date picker component
+- **Button Positioning**: Changed from `justify-end` to `justify-center` for button alignment
+
+## [Previous] - Simplified Deadline Animations
 
 ### Removed
 

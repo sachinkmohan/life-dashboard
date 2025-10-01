@@ -173,13 +173,16 @@
                         </div>
                       </div>
 
-                      <!-- Added: Date picker component -->
+                      <!-- Modified: Date picker component with improved layout -->
                       <div v-if="task.showDatePicker" class="mt-3">
-                        <v-card variant="outlined" class="pa-3">
+                        <v-card
+                          variant="outlined"
+                          class="pa-3 date-picker-card"
+                        >
                           <div
                             class="d-flex align-center justify-space-between mb-2"
                           >
-                            <h4 class="text-subtitle-2">Set Deadline</h4>
+                            <h4 class="text-h6">Set Deadline</h4>
                             <v-btn
                               icon="mdi-close"
                               size="x-small"
@@ -187,33 +190,43 @@
                               @click="closeDatePicker(task)"
                             />
                           </div>
-                          <v-date-picker
-                            v-model="selectedDate"
-                            :min="getCurrentDate()"
-                            :max="getNextSundayDate()"
-                            color="primary"
-                            elevation="0"
-                            hide-header
-                          />
-                          <div class="d-flex justify-end mt-2" style="gap: 8px">
-                            <v-btn
-                              v-if="task.deadline"
-                              color="error"
-                              variant="outlined"
-                              size="small"
-                              @click="removeDeadline(task)"
+
+                          <!-- Modified: Centered date picker with compact layout -->
+                          <div class="d-flex flex-column align-center">
+                            <v-date-picker
+                              v-model="selectedDate"
+                              :min="getCurrentDate()"
+                              :max="getNextSundayDate()"
+                              color="primary"
+                              elevation="0"
+                              hide-header
+                              width="280"
+                            />
+
+                            <!-- Modified: Action buttons directly below the date picker, centered -->
+                            <div
+                              class="d-flex justify-center mb-5"
+                              style="gap: 8px; width: 100%"
                             >
-                              Remove
-                            </v-btn>
-                            <v-btn
-                              color="success"
-                              variant="flat"
-                              size="small"
-                              @click="setDeadline(task)"
-                              :disabled="!selectedDate"
-                            >
-                              Set Deadline
-                            </v-btn>
+                              <v-btn
+                                v-if="task.deadline"
+                                color="error"
+                                variant="outlined"
+                                size="small"
+                                @click="removeDeadline(task)"
+                              >
+                                Remove
+                              </v-btn>
+                              <v-btn
+                                color="success"
+                                variant="flat"
+                                size="small"
+                                @click="setDeadline(task)"
+                                :disabled="!selectedDate"
+                              >
+                                Set Deadline
+                              </v-btn>
+                            </div>
                           </div>
                         </v-card>
                       </div>
@@ -939,5 +952,16 @@ const getTaskAnimationClass = (task: Task) => {
 
 .task-due-tomorrow {
   border-color: #2196f3 !important;
+}
+
+/* Added: Date picker card styling for compact layout */
+.date-picker-card {
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* Modified: Ensure date picker is properly centered and compact */
+.date-picker-card .v-date-picker {
+  margin: 0 auto;
 }
 </style>
