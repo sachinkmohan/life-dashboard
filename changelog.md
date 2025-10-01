@@ -1,6 +1,37 @@
 # Changelog
 
-## [Latest] - Fixed Vuetify Component Access TypeScript Errors
+## [Latest] - Code Refactoring: Extracted Date Parsing Helper
+
+### Added
+
+- **parseLocalDate Helper Function**: Centralized date parsing logic for consistent local timezone handling
+  - Extracts "YYYY-MM-DD" string parsing into reusable utility function
+  - Returns `Date` object in local timezone to avoid UTC conversion issues
+  - Handles month offset (0-indexed) consistently across all usage
+
+### Refactored
+
+- **Eliminated Code Duplication**: Removed repeated date parsing logic from multiple functions
+  - `getDaysUntilDeadline()`: Now uses `parseLocalDate()` helper
+  - `formatDeadlineText()`: Now uses `parseLocalDate()` helper
+  - `toggleDatePicker()`: Now uses `parseLocalDate()` helper
+- **Improved Maintainability**: Single source of truth for date string parsing logic
+- **Enhanced Consistency**: All date operations now use identical parsing approach
+
+### Technical Benefits
+
+- **DRY Principle**: Don't Repeat Yourself - eliminated 3 instances of duplicate code
+- **Maintainability**: Future date parsing changes only need to be made in one place
+- **Type Safety**: Helper function provides consistent `Date` return type
+- **Timezone Safety**: All date parsing now guaranteed to use local timezone
+
+### Code Quality Improvements
+
+- **Reduced Lines of Code**: Consolidated 9+ lines of duplicate parsing into single helper
+- **Better Abstraction**: Date parsing logic abstracted into meaningful function name
+- **Easier Testing**: Helper function can be tested independently if needed
+
+## [Previous] - Fixed Vuetify Component Access TypeScript Errors
 
 ### Fixed
 
