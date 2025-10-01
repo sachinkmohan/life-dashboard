@@ -477,7 +477,7 @@ const getCurrentDate = () => {
 const getNextSundayDate = () => {
   const today = new Date();
   const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-  const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+  const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek;
   const nextSunday = new Date(today);
   nextSunday.setDate(today.getDate() + daysUntilSunday);
   return nextSunday.toISOString().split("T")[0];
