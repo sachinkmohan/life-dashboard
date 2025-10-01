@@ -80,11 +80,8 @@
                     class="text-wrap break-word"
                   >
                     {{ task.text }}
-                    <!-- Show count badge -->
-                    <span
-                      class="task-count-badge"
-                      v-if="task.count > 0"
-                    >{{ task.count }}x</span>
+                    <!-- Always show count badge, even if 0 -->
+                    <span class="task-count-badge">{{ task.count }}x</span>
                   </v-list-item-title>
                   <v-text-field
                     v-else
@@ -182,7 +179,12 @@ const showResetDialog = ref(false); // For reset count dialog
 const addTask = () => {
   if (newTask.value.trim() === "") return;
   // Added: initialize count to 0
-  tasks.value.push({ id: uuidv4(), text: newTask.value, done: false, count: 0 });
+  tasks.value.push({
+    id: uuidv4(),
+    text: newTask.value,
+    done: false,
+    count: 0,
+  });
   newTask.value = "";
 };
 
@@ -275,6 +277,6 @@ const resetAllCounts = () => {
   margin-left: 8px;
   font-weight: 600;
   vertical-align: middle;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 </style>
