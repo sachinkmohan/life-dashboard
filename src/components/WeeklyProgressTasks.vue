@@ -51,9 +51,9 @@
                           >
                             <div class="d-flex align-center">
                               <!-- Modified: Changed decorative icon based on deadline urgency -->
-                              <v-icon 
-                                :color="getDeadlineUrgencyColor(task)" 
-                                size="small" 
+                              <v-icon
+                                :color="getDeadlineUrgencyColor(task)"
+                                size="small"
                                 class="mr-2"
                               >
                                 {{ getDeadlineIcon(task) }}
@@ -78,7 +78,9 @@
                                 size="small"
                                 class="mr-2"
                               >
-                                <v-icon start size="x-small">mdi-calendar</v-icon>
+                                <v-icon start size="x-small"
+                                  >mdi-calendar</v-icon
+                                >
                                 {{ formatDeadlineText(task) }}
                               </v-chip>
                             </div>
@@ -102,7 +104,9 @@
                             <v-btn
                               size="small"
                               @click="toggleDatePicker(task)"
-                              :color="task.deadline ? 'success' : 'grey-darken-1'"
+                              :color="
+                                task.deadline ? 'success' : 'grey-darken-1'
+                              "
                               icon="mdi-calendar"
                               min-width="32"
                             />
@@ -167,7 +171,9 @@
                       <!-- Added: Date picker component -->
                       <div v-if="task.showDatePicker" class="mt-3">
                         <v-card variant="outlined" class="pa-3">
-                          <div class="d-flex align-center justify-space-between mb-2">
+                          <div
+                            class="d-flex align-center justify-space-between mb-2"
+                          >
                             <h4 class="text-subtitle-2">Set Deadline</h4>
                             <v-btn
                               icon="mdi-close"
@@ -438,7 +444,7 @@ const selectedDate = ref<Date | null>(null);
 
 // Added: Get current date in YYYY-MM-DD format
 const getCurrentDate = () => {
-  return new Date().toISOString().split('T')[0];
+  return new Date().toISOString().split("T")[0];
 };
 
 // Added: Get next Sunday date (end of current week)
@@ -448,113 +454,137 @@ const getNextSundayDate = () => {
   const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
   const nextSunday = new Date(today);
   nextSunday.setDate(today.getDate() + daysUntilSunday);
-  return nextSunday.toISOString().split('T')[0];
+  return nextSunday.toISOString().split("T")[0];
 };
 
-// Added: Calculate days until deadline
+// Modified: Fix date calculation with proper timezone handling and debugging
 const getDaysUntilDeadline = (task: Task) => {
   if (!task.deadline) return null;
-  
+
+  // Fixed: Create dates in local timezone to avoid UTC conversion issues
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const deadline = new Date(task.deadline);
-  deadline.setHours(0, 0, 0, 0);
-  
-  const timeDiff = deadline.getTime() - today.getTime();
-  const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-  
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const day = today.getDate();
+  const todayLocal = new Date(year, month, day); // Local date at midnight
+
+  // Parse deadline date in local timezone
+  const deadlineParts = task.deadline.split("-");
+  const deadlineYear = parseInt(deadlineParts[0]);
+  const deadlineMonth = parseInt(deadlineParts[1]) - 1; // Month is 0-indexed
+  const deadlineDay = parseInt(deadlineParts[2]);
+  const deadlineLocal = new Date(deadlineYear, deadlineMonth, deadlineDay);
+
+  // Calculate difference in days
+  const timeDiff = deadlineLocal.getTime() - todayLocal.getTime();
+  const daysDiff = Math.round(timeDiff / (1000 * 3600 * 24));
+
+  // Added: Debug logging to see what's happening
+  console.log("Debug - getDaysUntilDeadline:", {
+    taskDeadline: task.deadline,
+    todayLocal: todayLocal.toISOString().split("T")[0],
+    deadlineLocal: deadlineLocal.toISOString().split("T")[0],
+    timeDiff: timeDiff,
+    daysDiff: daysDiff,
+  });
+
   return daysDiff;
 };
 
 // Added: Get deadline urgency color for icon
 const getDeadlineUrgencyColor = (task: Task) => {
   const daysUntil = getDaysUntilDeadline(task);
-  if (daysUntil === null) return 'grey';
-  if (daysUntil < 0) return 'error';
-  if (daysUntil === 0) return 'warning';
-  if (daysUntil === 1) return 'orange';
-  return 'primary';
+  if (daysUntil === null) return "grey";
+  if (daysUntil < 0) return "error";
+  if (daysUntil === 0) return "warning";
+  if (daysUntil === 1) return "orange";
+  return "primary";
 };
 
 // Added: Get deadline icon based on urgency
 const getDeadlineIcon = (task: Task) => {
   const daysUntil = getDaysUntilDeadline(task);
-  if (daysUntil === null) return 'mdi-star-outline';
-  if (daysUntil < 0) return 'mdi-alert-circle';
-  if (daysUntil === 0) return 'mdi-clock-alert';
-  if (daysUntil <= 2) return 'mdi-clock-fast';
-  return 'mdi-clock-outline';
+  if (daysUntil === null) return "mdi-star-outline";
+  if (daysUntil < 0) return "mdi-alert-circle";
+  if (daysUntil === 0) return "mdi-clock-alert";
+  if (daysUntil <= 2) return "mdi-clock-fast";
+  return "mdi-clock-outline";
 };
 
 // Added: Get deadline chip color
 const getDeadlineChipColor = (task: Task) => {
   const daysUntil = getDaysUntilDeadline(task);
-  if (daysUntil === null) return 'grey-lighten-1';
-  if (daysUntil < 0) return 'error';
-  if (daysUntil === 0) return 'warning';
-  if (daysUntil === 1) return 'orange';
-  if (daysUntil <= 2) return 'blue';
-  return 'success';
+  if (daysUntil === null) return "grey-lighten-1";
+  if (daysUntil < 0) return "error";
+  if (daysUntil === 0) return "warning";
+  if (daysUntil === 1) return "orange";
+  if (daysUntil <= 2) return "blue";
+  return "success";
 };
 
-// Added: Format deadline text for display
+// Modified: Fix formatDeadlineText to use timezone-safe date parsing
 const formatDeadlineText = (task: Task) => {
-  if (!task.deadline) return 'No deadline';
-  
+  if (!task.deadline) return "No deadline";
+
   const daysUntil = getDaysUntilDeadline(task);
-  if (daysUntil === null) return 'No deadline';
-  
-  const deadlineDate = new Date(task.deadline);
-  const formattedDate = deadlineDate.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric' 
+  if (daysUntil === null) return "No deadline";
+
+  // Fixed: Parse deadline date in local timezone to avoid UTC conversion issues
+  const deadlineParts = task.deadline.split("-");
+  const deadlineYear = parseInt(deadlineParts[0]);
+  const deadlineMonth = parseInt(deadlineParts[1]) - 1; // Month is 0-indexed
+  const deadlineDay = parseInt(deadlineParts[2]);
+  const deadlineDate = new Date(deadlineYear, deadlineMonth, deadlineDay);
+
+  const formattedDate = deadlineDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
   });
-  
+
   if (daysUntil < 0) return `Overdue (${formattedDate})`;
   if (daysUntil === 0) return `Due today (${formattedDate})`;
   if (daysUntil === 1) return `Due tomorrow (${formattedDate})`;
   return `${daysUntil} days (${formattedDate})`;
 };
 
-// Added: Toggle date picker visibility
+// Modified: Add debugging to toggleDatePicker function
 const toggleDatePicker = (task: Task) => {
   const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
   if (taskIndex !== -1) {
-    tasks.value[taskIndex].showDatePicker = !tasks.value[taskIndex].showDatePicker;
+    tasks.value[taskIndex].showDatePicker =
+      !tasks.value[taskIndex].showDatePicker;
     if (tasks.value[taskIndex].showDatePicker && task.deadline) {
-      selectedDate.value = new Date(task.deadline);
+      // Fixed: Parse deadline in local timezone to avoid UTC conversion
+      const deadlineParts = task.deadline.split("-");
+      const deadlineYear = parseInt(deadlineParts[0]);
+      const deadlineMonth = parseInt(deadlineParts[1]) - 1; // Month is 0-indexed
+      const deadlineDay = parseInt(deadlineParts[2]);
+      selectedDate.value = new Date(deadlineYear, deadlineMonth, deadlineDay);
     } else if (!tasks.value[taskIndex].showDatePicker) {
       selectedDate.value = null;
     }
   }
 };
 
-// Added: Close date picker
-const closeDatePicker = (task: Task) => {
-  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
-  if (taskIndex !== -1) {
-    tasks.value[taskIndex].showDatePicker = false;
-    selectedDate.value = null;
-  }
-};
-
-// Added: Set deadline for task
+// Modified: Fix setDeadline to ensure proper date formatting
 const setDeadline = (task: Task) => {
   if (!selectedDate.value) return;
-  
-  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
-  if (taskIndex !== -1) {
-    tasks.value[taskIndex].deadline = selectedDate.value.toISOString().split('T')[0];
-    tasks.value[taskIndex].showDatePicker = false;
-    selectedDate.value = null;
-  }
-};
 
-// Added: Remove deadline from task
-const removeDeadline = (task: Task) => {
   const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
   if (taskIndex !== -1) {
-    delete tasks.value[taskIndex].deadline;
+    // Fixed: Format date properly in local timezone
+    const year = selectedDate.value.getFullYear();
+    const month = String(selectedDate.value.getMonth() + 1).padStart(2, "0");
+    const day = String(selectedDate.value.getDate()).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
+
+    // Added: Debug logging
+    console.log("Debug - setDeadline:", {
+      selectedDate: selectedDate.value,
+      formattedDate: formattedDate,
+    });
+
+    tasks.value[taskIndex].deadline = formattedDate;
     tasks.value[taskIndex].showDatePicker = false;
     selectedDate.value = null;
   }
@@ -671,12 +701,12 @@ const sortedTasks = computed(() => {
     if (!a.done && !b.done) {
       const aDaysUntil = getDaysUntilDeadline(a);
       const bDaysUntil = getDaysUntilDeadline(b);
-      
+
       // Tasks with no deadline go to the bottom
       if (aDaysUntil === null && bDaysUntil === null) return 0;
       if (aDaysUntil === null) return 1;
       if (bDaysUntil === null) return -1;
-      
+
       // Sort by days until deadline (ascending - most urgent first)
       return aDaysUntil - bDaysUntil;
     }
