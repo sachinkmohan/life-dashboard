@@ -99,6 +99,8 @@
                             hide-details
                             variant="outlined"
                             style="max-width: 250px"
+                            ref="taskEditInput"
+                            autofocus
                           />
                         </div>
                         <!-- Modified: Added date picker button to the action buttons group -->
@@ -362,6 +364,8 @@
                                   variant="outlined"
                                   style="max-width: 200px; font-size: 0.9em"
                                   @keyup.enter="saveSubtaskEdit(task, subtask)"
+                                  ref="subtaskEditInput"
+                                  autofocus
                                 />
                               </div>
                               <!-- Added: Grouped edit and delete buttons for subtasks -->
@@ -428,7 +432,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, watch, onMounted, computed, nextTick } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 interface Subtask {
@@ -459,6 +463,10 @@ const editingSubtaskId = ref<string | null>(null);
 const editedSubtaskText = ref("");
 // Added: State variable for date picker
 const selectedDate = ref<Date | null>(null);
+
+// Modified: Template refs for Vuetify components to manage focus and cursor position
+const taskEditInput = ref<any>(null);
+const subtaskEditInput = ref<any>(null);
 
 // Added: Get current date in YYYY-MM-DD format
 const getCurrentDate = () => {
@@ -662,6 +670,19 @@ const deleteTask = (id: string) => {
 const startEditing = (task: Task) => {
   editingTaskId.value = task.id;
   editedTaskText.value = task.text;
+
+  // Modified: Focus input and position cursor at end of text after DOM update
+  nextTick(() => {
+    if (taskEditInput.value && taskEditInput.value.$el) {
+      const input = taskEditInput.value.$el.querySelector(
+        "input"
+      ) as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    }
+  });
 };
 
 // Save edited task
@@ -812,6 +833,19 @@ const addSubtask = (task: Task) => {
 const startSubtaskEditing = (subtask: Subtask) => {
   editingSubtaskId.value = subtask.id;
   editedSubtaskText.value = subtask.text;
+
+  // Modified: Focus input and position cursor at end of text after DOM update
+  nextTick(() => {
+    if (subtaskEditInput.value && subtaskEditInput.value.$el) {
+      const input = subtaskEditInput.value.$el.querySelector(
+        "input"
+      ) as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    }
+  });
 };
 
 // Modified: Save edited subtask with proper reactivity

@@ -1,6 +1,71 @@
 # Changelog
 
-## [Latest] - Date Picker Layout Optimization
+## [Latest] - Fixed Vuetify Component Access TypeScript Errors
+
+### Fixed
+
+- **TypeScript Component Access**: Fixed "Property '$el' does not exist" errors for Vuetify components
+  - Changed template ref types from `HTMLInputElement` to `any` for Vuetify components
+  - Added null checks for both component reference and `$el` property access
+  - Ensured proper access to underlying DOM input elements within Vuetify components
+
+### Technical Details
+
+- **Root Cause**: Vuetify components don't directly expose `$el` property in TypeScript without proper typing
+- **Solution**: Use `any` type for Vuetify component refs and add defensive null checking
+- **Safety**: Added checks for both `component.value` and `component.value.$el` before DOM manipulation
+- **Impact**: Eliminates TypeScript compilation errors while maintaining auto-focus functionality
+
+### Modified Functions
+
+- **startEditing()**: Added null check for `taskEditInput.value.$el` before querySelector
+- **startSubtaskEditing()**: Added null check for `subtaskEditInput.value.$el` before querySelector
+
+## [Previous] - Fixed Template Reference TypeScript Errors
+
+### Fixed
+
+- **Template References**: Added missing `taskEditInput` and `subtaskEditInput` template references
+  - Resolved "Cannot find name 'taskEditInput'" TypeScript error
+  - Resolved "Cannot find name 'subtaskEditInput'" TypeScript error
+- **Type Safety**: Proper TypeScript declarations for input field references
+
+### Technical Details
+
+- **Root Cause**: Template refs were used in functions but not declared in script setup
+- **Solution**: Added `ref<HTMLInputElement | null>(null)` declarations for both input fields
+- **Impact**: Eliminates TypeScript compilation errors and enables proper auto-focus functionality
+
+## [Previous] - Auto-Focus and Cursor Positioning for Editing
+
+### Added
+
+- **Auto-Focus on Edit**: Input fields automatically receive focus when editing starts
+  - Task title editing: Cursor positioned at end of existing text
+  - Subtask editing: Cursor positioned at end of existing text
+- **Template References**: Added `ref` attributes to editing input fields for direct DOM access
+- **Cursor Positioning**: Automatic cursor placement at end of text using `setSelectionRange()`
+
+### Enhanced
+
+- **User Experience**: Seamless editing flow without manual click to position cursor
+- **Keyboard Navigation**: Users can immediately start typing when edit mode activates
+- **Consistent Behavior**: Both task titles and subtasks use same auto-focus pattern
+
+### Technical Implementation
+
+- **Template Refs**: Added `taskEditInput` and `subtaskEditInput` refs for input field access
+- **DOM Interaction**: Direct access to Vuetify input elements via `$el.querySelector('input')`
+- **nextTick Usage**: Ensures DOM updates complete before focusing and positioning cursor
+- **Selection Range**: Uses `setSelectionRange(length, length)` to position cursor at text end
+
+### Modified Functions
+
+- **startEditing()**: Enhanced with auto-focus and cursor positioning for task titles
+- **startSubtaskEditing()**: Enhanced with auto-focus and cursor positioning for subtasks
+- **Input Fields**: Added `ref` and `autofocus` attributes to editing text fields
+
+## [Previous] - Date Picker Layout Optimization
 
 ### Enhanced
 
