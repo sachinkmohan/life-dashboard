@@ -1,5 +1,280 @@
 # Changelog
 
+## [Latest] - Code Refactoring: Extracted Date Parsing Helper
+
+### Added
+
+- **parseLocalDate Helper Function**: Centralized date parsing logic for consistent local timezone handling
+  - Extracts "YYYY-MM-DD" string parsing into reusable utility function
+  - Returns `Date` object in local timezone to avoid UTC conversion issues
+  - Handles month offset (0-indexed) consistently across all usage
+
+### Refactored
+
+- **Eliminated Code Duplication**: Removed repeated date parsing logic from multiple functions
+  - `getDaysUntilDeadline()`: Now uses `parseLocalDate()` helper
+  - `formatDeadlineText()`: Now uses `parseLocalDate()` helper
+  - `toggleDatePicker()`: Now uses `parseLocalDate()` helper
+- **Improved Maintainability**: Single source of truth for date string parsing logic
+- **Enhanced Consistency**: All date operations now use identical parsing approach
+
+### Technical Benefits
+
+- **DRY Principle**: Don't Repeat Yourself - eliminated 3 instances of duplicate code
+- **Maintainability**: Future date parsing changes only need to be made in one place
+- **Type Safety**: Helper function provides consistent `Date` return type
+- **Timezone Safety**: All date parsing now guaranteed to use local timezone
+
+### Code Quality Improvements
+
+- **Reduced Lines of Code**: Consolidated 9+ lines of duplicate parsing into single helper
+- **Better Abstraction**: Date parsing logic abstracted into meaningful function name
+- **Easier Testing**: Helper function can be tested independently if needed
+
+## [Previous] - Fixed Vuetify Component Access TypeScript Errors
+
+### Fixed
+
+- **TypeScript Component Access**: Fixed "Property '$el' does not exist" errors for Vuetify components
+  - Changed template ref types from `HTMLInputElement` to `any` for Vuetify components
+  - Added null checks for both component reference and `$el` property access
+  - Ensured proper access to underlying DOM input elements within Vuetify components
+
+### Technical Details
+
+- **Root Cause**: Vuetify components don't directly expose `$el` property in TypeScript without proper typing
+- **Solution**: Use `any` type for Vuetify component refs and add defensive null checking
+- **Safety**: Added checks for both `component.value` and `component.value.$el` before DOM manipulation
+- **Impact**: Eliminates TypeScript compilation errors while maintaining auto-focus functionality
+
+### Modified Functions
+
+- **startEditing()**: Added null check for `taskEditInput.value.$el` before querySelector
+- **startSubtaskEditing()**: Added null check for `subtaskEditInput.value.$el` before querySelector
+
+## [Previous] - Fixed Template Reference TypeScript Errors
+
+### Fixed
+
+- **Template References**: Added missing `taskEditInput` and `subtaskEditInput` template references
+  - Resolved "Cannot find name 'taskEditInput'" TypeScript error
+  - Resolved "Cannot find name 'subtaskEditInput'" TypeScript error
+- **Type Safety**: Proper TypeScript declarations for input field references
+
+### Technical Details
+
+- **Root Cause**: Template refs were used in functions but not declared in script setup
+- **Solution**: Added `ref<HTMLInputElement | null>(null)` declarations for both input fields
+- **Impact**: Eliminates TypeScript compilation errors and enables proper auto-focus functionality
+
+## [Previous] - Auto-Focus and Cursor Positioning for Editing
+
+### Added
+
+- **Auto-Focus on Edit**: Input fields automatically receive focus when editing starts
+  - Task title editing: Cursor positioned at end of existing text
+  - Subtask editing: Cursor positioned at end of existing text
+- **Template References**: Added `ref` attributes to editing input fields for direct DOM access
+- **Cursor Positioning**: Automatic cursor placement at end of text using `setSelectionRange()`
+
+### Enhanced
+
+- **User Experience**: Seamless editing flow without manual click to position cursor
+- **Keyboard Navigation**: Users can immediately start typing when edit mode activates
+- **Consistent Behavior**: Both task titles and subtasks use same auto-focus pattern
+
+### Technical Implementation
+
+- **Template Refs**: Added `taskEditInput` and `subtaskEditInput` refs for input field access
+- **DOM Interaction**: Direct access to Vuetify input elements via `$el.querySelector('input')`
+- **nextTick Usage**: Ensures DOM updates complete before focusing and positioning cursor
+- **Selection Range**: Uses `setSelectionRange(length, length)` to position cursor at text end
+
+### Modified Functions
+
+- **startEditing()**: Enhanced with auto-focus and cursor positioning for task titles
+- **startSubtaskEditing()**: Enhanced with auto-focus and cursor positioning for subtasks
+- **Input Fields**: Added `ref` and `autofocus` attributes to editing text fields
+
+## [Previous] - Date Picker Layout Optimization
+
+### Enhanced
+
+- **Date Picker Layout**: Redesigned date picker for better visual hierarchy and compactness
+  - Moved action buttons directly below the calendar instead of bottom-right corner
+  - Centered date picker and buttons for better visual balance
+  - Reduced date picker width to 280px for more compact display
+  - Added maximum width constraint (320px) to date picker card container
+
+### Improved
+
+- **Visual Hierarchy**: Better organization of date picker elements
+  - Calendar dates at the top
+  - Action buttons (Remove/Set Deadline) immediately below dates
+  - Centered alignment for all elements within the picker
+- **User Experience**: More intuitive button placement closer to date selection area
+- **Responsive Design**: Compact layout works better on different screen sizes
+
+### Technical Changes
+
+- **CSS Classes**: Added `.date-picker-card` styling for layout constraints
+- **Flexbox Layout**: Used `flex-column` and `align-center` for vertical stacking
+- **Width Constraints**: Set specific width (280px) for date picker component
+- **Button Positioning**: Changed from `justify-end` to `justify-center` for button alignment
+
+## [Previous] - Simplified Deadline Animations
+
+### Removed
+
+- **Pulse Animations**: Removed `urgentPulse` and `gentlePulse` animations for cleaner, less distracting UI
+- **Animation Scaling Effects**: No more scaling transformations on deadline-urgent tasks
+- **Complex Animation Combinations**: Simplified from multiple simultaneous animations to single effects
+
+### Modified
+
+- **Due Today Animation**: Now uses only spotlight background animation (3s cycle)
+- **Due Tomorrow Styling**: Shows only blue border color without any animation
+- **Hover Behavior**: Simplified hover effects without animation pause states
+
+### Kept
+
+- **Spotlight Effect**: Subtle background color animation for tasks due today
+- **Border Color Indicators**: Orange border for today, blue border for tomorrow
+- **Dynamic Animation Classes**: `getTaskAnimationClass()` function still determines styling based on deadline urgency
+
+### Technical Changes
+
+- **CSS Simplification**: Removed `urgentPulse` and `gentlePulse` keyframe definitions
+- **Class Updates**: `.task-due-today` now only applies spotlight animation and border color
+- **Performance Improvement**: Fewer CSS animations running simultaneously reduces resource usage
+
+## [Previous] - Deadline Urgency Animations
+
+### Added
+
+- **Pulse Animation**: Tasks due today display an urgent pulse effect with orange accent
+- **Spotlight Animation**: Tasks due today also feature a subtle background spotlight effect
+- **Gentle Pulse**: Tasks due tomorrow show a gentler blue pulse animation
+- **Dynamic Animation Classes**: `getTaskAnimationClass()` function determines appropriate animation based on deadline urgency
+
+### Enhanced
+
+- **Visual Urgency Indicators**: Animations provide immediate visual cues for deadline proximity
+- **Border Color Changes**: Task cards show colored borders matching their urgency level
+- **Hover Interaction**: Animations pause on hover to prevent distraction during interaction
+- **Performance Optimized**: Animations only apply to incomplete tasks with deadlines
+
+### Technical Implementation
+
+- **CSS Keyframes**: Three animation types - `urgentPulse`, `spotlight`, and `gentlePulse`
+- **Conditional Styling**: Animations applied via dynamic class binding based on `getDaysUntilDeadline()`
+- **Animation Timing**: Due today (2s urgent pulse + 3s spotlight), Due tomorrow (3s gentle pulse)
+- **User Experience**: Animations pause on hover to allow comfortable interaction
+
+### Animation Details
+
+- **Due Today**: Orange border + urgent pulse (scale 1.02) + spotlight background effect
+- **Due Tomorrow**: Blue border + gentle pulse (scale 1.01) with blue shadow
+- **Other Tasks**: No animations, maintaining clean interface for non-urgent items
+
+## [Previous] - TypeScript Error Fixes
+
+### Fixed
+
+- **Missing Functions**: Added missing `closeDatePicker` and `removeDeadline` functions to resolve TypeScript compilation errors
+  - `closeDatePicker`: Closes the date picker modal and resets selected date
+  - `removeDeadline`: Removes deadline from task and closes date picker
+  - Both functions properly update reactive state and clear UI components
+
+### Technical Details
+
+- **Root Cause**: Functions were referenced in template but not defined in script setup
+- **Solution**: Added proper function implementations with reactive state management
+- **Impact**: Eliminates TypeScript compilation errors and ensures proper functionality
+
+## [Previous] - Finalized Deadline Feature
+
+### Removed
+
+- **Debug Logging**: Removed temporary console.log statements from deadline functions
+  - Cleaned up `getDaysUntilDeadline` function
+  - Cleaned up `setDeadline` function
+  - Code is now production-ready without debug output
+
+### Confirmed Working
+
+- **Deadline Display**: Correctly shows "Due today" when deadline is set to today's date
+- **Tomorrow Display**: Correctly shows "Due tomorrow" when deadline is set to tomorrow
+- **Future Dates**: Correctly shows "X days" for dates beyond tomorrow
+- **Timezone Handling**: All date calculations work properly in local timezone
+
+## [Previous] - Debug and Complete Timezone Fix
+
+### Fixed
+
+- **Date Picker Timezone Issues**: Fixed remaining timezone issues in date picker functions
+  - `toggleDatePicker`: Now parses existing deadline dates in local timezone when opening picker
+  - `setDeadline`: Uses manual date formatting to avoid timezone conversion issues
+  - Added debug logging to `getDaysUntilDeadline` to track date calculation issues
+
+### Added
+
+- **Debug Logging**: Temporary console logs to diagnose date calculation problems
+  - Shows task deadline, today's date, and calculated difference
+  - Helps identify where timezone conversion is occurring
+
+### Technical Details
+
+- **Root Cause**: Multiple functions were still using Date constructors that could cause UTC conversion
+- **Solution**: Consistent local timezone parsing across all date-related functions
+- **Impact**: Successfully achieved correct date display behavior
+
+## [Earlier] - Complete Timezone Date Fix
+
+### Fixed
+
+- **Date Formatting Timezone Issue**: Fixed `formatDeadlineText` function to use timezone-safe date parsing
+  - Applied same local timezone parsing approach as used in `getDaysUntilDeadline`
+  - Prevents UTC conversion issues that caused "today" deadlines to show as "overdue yesterday"
+  - Ensures consistent date handling across all deadline-related functions
+
+### Technical Details
+
+- **Root Cause**: `formatDeadlineText` was still using `new Date(task.deadline)` which could interpret dates in UTC
+- **Solution**: Parse date string components manually and create Date object in local timezone
+- **Impact**: Now correctly displays "Due today" when deadline is set to today's date
+
+## [Original] - Date Calculation Fix
+
+### Fixed
+
+- **Deadline Date Calculation**: Fixed off-by-one error in deadline calculation
+  - Setting today's date now correctly shows "Due today" instead of "Overdue"
+  - Setting tomorrow's date now shows "Due tomorrow" instead of "Due today"
+  - Changed from `Math.ceil` to `Math.floor` in `getDaysUntilDeadline` function for accurate day counting
+  - Ensures proper date logic: same day = 0 days, tomorrow = 1 day, day after = 2 days
+- **Action Button Group**: Added calendar icon button for deadline management
+- **Task Display**: Enhanced task cards with deadline information chips and urgency indicators
+
+### Removed
+
+- **Number-Based Sorting**: Removed the previous sorting system based on numbered task titles
+- **extractTaskNumber Function**: No longer needed with new deadline-based sorting
+
+### Technical Improvements
+
+- **Date Validation**: Date picker restricted to current week (today through next Sunday)
+- **Reactive State Management**: Proper reactivity for deadline-related state changes
+- **LocalStorage Compatibility**: Backward compatible with existing tasks (adds deadline fields seamlessly)
+- **Clean UI Design**: Maximized use of Vuetify components for consistent styling and UX
+
+### UI/UX Enhancements
+
+- **Visual Hierarchy**: Clear deadline urgency through color-coded chips and icons
+- **Intuitive Controls**: Easy-to-use date picker with set/remove deadline options
+- **Responsive Design**: Maintains clean layout across different screen sizes
+- **Accessibility**: Proper color contrast and icon usage for deadline status indication
+
 ## DailyTasks Component Implementation
 
 ### Features Implemented ✅
