@@ -139,11 +139,7 @@ function addCountdown() {
   countdowns.value.push(newItem);
   saveCountdowns();
   defaultInputCountdownText.value = "Today"; // Changed: reset title input
-  if (newCountdown.value.length >= 19) {
-    timeByUser.value = newCountdown.value.slice(11); //set new time set by user for new countdown
-  } else {
-    timeByUser.value = "00:00:00"; // reset to default if format is incorrect
-  }
+  timeByUser.value = newCountdown.value.slice(11); //set new time set by user for new countdown
   localStorage.setItem("timeByUser", timeByUser.value);
   newCountdown.value = getToday();
 }
