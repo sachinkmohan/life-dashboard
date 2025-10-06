@@ -104,6 +104,20 @@ function fetchCountdowns() {
   countdowns.value = stored ? JSON.parse(stored) : [];
 }
 
+function resetTodaysCountdown() {
+  const stored = localStorage.getItem("countdowns");
+  countdowns.value = stored ? JSON.parse(stored) : [];
+  for (let item of countdowns.value) {
+    if (item.title === "Today") {
+      item.countdown = getToday().slice(0, 10) + " 22:30:00";
+      const todayDate = new Date().toISOString().slice(0, 10);
+      item.countdown = todayDate + " 22:30:00";
+      saveCountdowns();
+      break;
+    }
+  }
+}
+
 // Save countdowns to localStorage
 function saveCountdowns() {
   localStorage.setItem("countdowns", JSON.stringify(countdowns.value));
@@ -135,6 +149,7 @@ function deleteCountdown(id: string) {
 
 // On mount, fetch countdowns
 onMounted(() => {
+  resetTodaysCountdown();
   fetchCountdowns();
 });
 </script>
