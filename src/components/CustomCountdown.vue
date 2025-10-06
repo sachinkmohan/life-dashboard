@@ -76,6 +76,16 @@ interface CountdownItem {
   countdown: string;
 }
 
+// State variables
+// timeByUser should be fetched from localStorage, default value "00:00:00"
+const timeByUser = ref<string>(
+  localStorage.getItem("timeByUser") || "00:00:00"
+);
+const newCountdown = ref<string>(getToday()); // Changed: default to today
+const countdowns = ref<CountdownItem[]>([]);
+const isHidden = ref<boolean>(true);
+const defaultInputCountdownText = ref<string>("Today");
+
 // Helper: Get today's date in YYYY-MM-DD 00:00:00 format
 function getToday(): string {
   // Added: Helper to get today's date as required string
@@ -83,14 +93,8 @@ function getToday(): string {
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const dd = String(now.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd} 22:30:00`;
+  return `${yyyy}-${mm}-${dd} ${timeByUser.value}`;
 }
-
-// State variables
-const newCountdown = ref<string>(getToday()); // Changed: default to today
-const countdowns = ref<CountdownItem[]>([]);
-const isHidden = ref<boolean>(true);
-const defaultInputCountdownText = ref<string>("Today");
 
 // Helper: Generate unique ID
 function generateId(): string {
@@ -137,6 +141,8 @@ function addCountdown() {
   countdowns.value.push(newItem);
   saveCountdowns();
   defaultInputCountdownText.value = "Today"; // Changed: reset title input
+  timeByUser.value = newCountdown.value.slice(11); //set new time set by user for new countdown
+  localStorage.setItem("timeByUser", timeByUser.value);
   newCountdown.value = getToday();
 }
 
