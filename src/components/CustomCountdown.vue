@@ -113,9 +113,7 @@ function resetTodaysCountdown() {
   countdowns.value = stored ? JSON.parse(stored) : [];
   for (let item of countdowns.value) {
     if (item.title === "Today") {
-      item.countdown = getToday().slice(0, 10) + " 22:30:00";
-      const todayDate = new Date().toISOString().slice(0, 10);
-      item.countdown = todayDate + " 22:30:00";
+      item.countdown = getToday();
       saveCountdowns();
       break;
     }
@@ -141,7 +139,11 @@ function addCountdown() {
   countdowns.value.push(newItem);
   saveCountdowns();
   defaultInputCountdownText.value = "Today"; // Changed: reset title input
-  timeByUser.value = newCountdown.value.slice(11); //set new time set by user for new countdown
+  if (newCountdown.value.length >= 19) {
+    timeByUser.value = newCountdown.value.slice(11); //set new time set by user for new countdown
+  } else {
+    timeByUser.value = "00:00:00"; // reset to default if format is incorrect
+  }
   localStorage.setItem("timeByUser", timeByUser.value);
   newCountdown.value = getToday();
 }
