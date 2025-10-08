@@ -276,13 +276,23 @@
                                 @update:model-value="
                                   updateSubtaskInputText(task, $event)
                                 "
-                                label="Add subtask"
+                                label="Add subtask or number range(check tip)"
                                 density="compact"
                                 hide-details
                                 variant="outlined"
                                 @keyup.enter="addSubtask(task)"
                                 style="font-size: 0.9em"
                               />
+                              <!-- Added: Subtle info text for number range expansion logic -->
+                              <v-text
+                                class="text-caption text-grey-darken-1 mt-1"
+                                style="font-size: 0.85em"
+                              >
+                                Tip: Enter ranges like <b>1,5(1)</b> to
+                                auto-expand to <b>1,2,3,4,5</b>. Max 10 numbers.
+                                Each value becomes a separate subtask on
+                                pressing enter.
+                              </v-text>
                             </v-col>
                             <v-col
                               cols="4"
@@ -799,7 +809,7 @@ const cancelSubtaskInput = (task: Task) => {
   }
 };
 
-// Modified: Add subtask with proper reactivity and hide input after adding
+// Modified: Add subtask with support for multiple comma-separated values
 const addSubtask = (task: Task) => {
   // Find the task in the tasks array to ensure reactivity
   const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
@@ -814,11 +824,18 @@ const addSubtask = (task: Task) => {
     tasks.value[taskIndex].subtasks = [];
   }
 
-  // Add the new subtask to the reactive array
-  tasks.value[taskIndex].subtasks!.push({
-    id: uuidv4(),
-    text: currentTask.newSubtaskText.trim(),
-    done: false,
+  // Added: Split input by comma and add each as a separate subtask
+  const subtaskTexts = currentTask.newSubtaskText
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t) => t !== "");
+
+  subtaskTexts.forEach((text) => {
+    tasks.value[taskIndex].subtasks!.push({
+      id: uuidv4(),
+      text,
+      done: false,
+    });
   });
 
   // Clear input and hide the input field
@@ -918,9 +935,50 @@ const getSubtaskInputText = (task: Task) => {
 const updateSubtaskInputText = (task: Task, text: string) => {
   const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
   if (taskIndex !== -1) {
+    // Added: Expand number ranges before updating the input field
     tasks.value[taskIndex].newSubtaskText = text;
+
+    // Clear previous timer if exists
+    const timerId = subtaskInputTimers.get(task.id);
+    if (timerId) clearTimeout(timerId);
+
+    // Set new timer for 2s debounce
+    const newTimer = setTimeout(() => {
+      // Only expand if the input still matches the original text
+      const currentText = tasks.value[taskIndex].newSubtaskText;
+      const expandedText = expandNumberRanges(currentText);
+      if (currentText !== expandedText) {
+        // Replace with expanded value
+        tasks.value[taskIndex].newSubtaskText = expandedText;
+      }
+    }, 2000);
+
+    subtaskInputTimers.set(task.id, newTimer);
   }
 };
+
+// Added: Timer map to track debounce per task
+const subtaskInputTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+// Modified: Helper function to expand number ranges with a max of 10 numbers
+function expandNumberRanges(input: string): string {
+  const rangeRegex = /(\d+),(\d+)\((\d+)\)/g;
+  let expanded = input;
+  let match;
+  while ((match = rangeRegex.exec(input)) !== null) {
+    const start = parseInt(match[1]);
+    const end = parseInt(match[2]);
+    const step = parseInt(match[3]);
+    if (step > 0 && start <= end) {
+      const nums = [];
+      for (let i = start; i <= end && nums.length < 10; i += step) {
+        nums.push(i);
+      }
+      expanded = expanded.replace(match[0], nums.join(","));
+    }
+  }
+  return expanded;
+}
 
 // Added: Get animation class based on task deadline urgency
 const getTaskAnimationClass = (task: Task) => {

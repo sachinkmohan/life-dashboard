@@ -12,6 +12,32 @@
 - Count increments each time a task is checked after being unchecked.
 - Added a "Reset Count" button next to "Uncheck All" with a confirmation dialog to reset all counts to 0.
 - Improved visual hierarchy and styling for the count badge and controls.
+- Added a minimalistic Vuetify 3 linear progress bar to WeekNumber.vue, showing the percentage of the week completed and the days left until Sunday (including today).
+- Used Vuetify 3 styling and components for visual hierarchy.
+- Added logic to calculate week progress and days left.
+- Enhanced task creation with comma-separated input parsing
+  - First value becomes the main task title
+  - Subsequent comma-separated values automatically become subtasks
+  - Automatic whitespace trimming for clean task and subtask names
+  - Empty values are filtered out to prevent blank entries
+- **NEW**: Numbered list parsing and automatic sorting
+  - Detects numbered items in format "1. Task name"
+  - Automatically sorts tasks and subtasks by their numbers
+  - Supports mixed numbered and non-numbered items
+  - Non-numbered items are placed after numbered ones
+- **ENHANCED**: Advanced task sorting with numbered priority
+  - Numbered tasks (1. 2. 3. etc.) always appear at the top in ascending numerical order
+  - Non-numbered tasks maintain their original creation order
+  - Completed tasks are sorted separately but maintain the same priority rules
+- **Dark Mode Feature**: Added a dark mode toggle functionality
+  - Fixed dark mode toggle button positioned in the top right corner
+  - Button shows sun icon in dark mode and moon icon in light mode
+  - Dark mode applies dark background (#121212) and white text to the body element
+  - Smooth transitions between light and dark modes
+  - Automatic cleanup of dark mode class on component unmount
+  - Vue components remain untouched as requested
+  - App.vue layout preserved without any changes
+- Added a subtle info text below the "Add subtask" input field to explain the number range expansion logic and subtask splitting.
 
 ### Refactored
 
@@ -523,6 +549,7 @@ interface Task {
   - Automatic cleanup of dark mode class on component unmount
   - Vue components remain untouched as requested
   - App.vue layout preserved without any changes
+- Added a subtle info text below the "Add subtask" input field to explain the number range expansion logic and subtask splitting.
 
 ### Changed
 
@@ -568,3 +595,9 @@ interface Task {
 - Mixed tasks "Task X", "2. Priority", "Task Y", "1. Urgent" will display as: "1. Urgent", "2. Priority", "Task X", "Task Y"
 - Completed tasks maintain the same sorting rules but appear after incomplete tasks
 - Edited task titles now persist correctly after page refresh
+
+### Subtask Number Range Expansion Details
+
+- Number range expansion in the "Add subtask" field now happens only after 2 seconds of inactivity.
+- Expansion is limited to a maximum of 10 numbers.
+- Expansion logic is applied only to the subtask input field, not elsewhere.
