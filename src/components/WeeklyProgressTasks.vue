@@ -799,7 +799,7 @@ const cancelSubtaskInput = (task: Task) => {
   }
 };
 
-// Modified: Add subtask with proper reactivity and hide input after adding
+// Modified: Add subtask with support for multiple comma-separated values
 const addSubtask = (task: Task) => {
   // Find the task in the tasks array to ensure reactivity
   const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
@@ -814,11 +814,18 @@ const addSubtask = (task: Task) => {
     tasks.value[taskIndex].subtasks = [];
   }
 
-  // Add the new subtask to the reactive array
-  tasks.value[taskIndex].subtasks!.push({
-    id: uuidv4(),
-    text: currentTask.newSubtaskText.trim(),
-    done: false,
+  // Added: Split input by comma and add each as a separate subtask
+  const subtaskTexts = currentTask.newSubtaskText
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t) => t !== "");
+
+  subtaskTexts.forEach((text) => {
+    tasks.value[taskIndex].subtasks!.push({
+      id: uuidv4(),
+      text,
+      done: false,
+    });
   });
 
   // Clear input and hide the input field
