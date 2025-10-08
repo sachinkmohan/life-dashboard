@@ -945,7 +945,8 @@ const updateSubtaskInputText = (task: Task, text: string) => {
     // Set new timer for 2s debounce
     const newTimer = setTimeout(() => {
       // Only expand if the input still matches the original text
-      const currentText = tasks.value[taskIndex].newSubtaskText;
+      // Fixed: Ensure expandNumberRanges always receives a string
+      const currentText = tasks.value[taskIndex].newSubtaskText ?? "";
       const expandedText = expandNumberRanges(currentText);
       if (currentText !== expandedText) {
         // Replace with expanded value
