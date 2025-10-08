@@ -29,7 +29,6 @@
 <script setup lang="ts">
 import { getISOWeek, format } from "date-fns";
 // Added import for Vuetify components
-import { ref, computed } from "vue";
 
 const currentWeekNumber: number = getISOWeek(new Date());
 const currentDate = format(new Date(), "dd-MM-yyyy");
@@ -37,7 +36,8 @@ const currentDate = format(new Date(), "dd-MM-yyyy");
 // Added logic to calculate week progress and days left until Sunday
 const today = new Date();
 const dayOfWeek = today.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
-const daysLeft = 7 - dayOfWeek; // Including today
+const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Convert Sunday from 0 to 7
+const daysLeft = 8 - isoDayOfWeek; // Including today
 
-const weekProgressPercent = Math.round(((dayOfWeek + 1) / 7) * 100); // Including today
+const weekProgressPercent = Math.round((isoDayOfWeek / 7) * 100); // Including today
 </script>
