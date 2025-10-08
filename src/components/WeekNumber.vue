@@ -23,12 +23,42 @@
       </v-col>
     </v-row>
     <!-- End of progress bar addition -->
+
+    <!-- Added: Calendar section with navigation and reduced size -->
+    <v-row class="mt-6" align="center">
+      <v-col cols="12">
+        <v-card elevation="2" class="pa-4">
+          <!-- Added: Month navigation header -->
+          <div class="d-flex align-center justify-space-between mb-4">
+            <v-btn
+              icon="mdi-chevron-left"
+              variant="text"
+              @click="previousMonth"
+            />
+            <h3 class="text-h5">{{ currentMonthYear }}</h3>
+            <v-btn icon="mdi-chevron-right" variant="text" @click="nextMonth" />
+          </div>
+          <!-- Added: v-date-picker component -->
+          <v-date-picker
+            v-model="selectedDate"
+            color="primary"
+            show-adjacent-months
+            show-week
+            hide-header
+            elevation="0"
+            max-width="350"
+            first-day-of-week="1"
+          />
+        </v-card>
+      </v-col>
+    </v-row>
+    <!-- End of calendar addition -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { getISOWeek, format } from "date-fns";
-// Added import for Vuetify components
+import { getISOWeek, format, subMonths, addMonths } from "date-fns";
+import { ref, computed } from "vue";
 
 const currentWeekNumber: number = getISOWeek(new Date());
 const currentDate = format(new Date(), "dd-MM-yyyy");
@@ -40,4 +70,22 @@ const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Convert Sunday from 0 t
 const daysLeft = 8 - isoDayOfWeek; // Including today
 
 const weekProgressPercent = Math.round((isoDayOfWeek / 7) * 100); // Including today
+
+// Added: Calendar state management
+const selectedDate = ref(new Date());
+
+// Added: Computed property for month/year display
+const currentMonthYear = computed(() => {
+  return format(selectedDate.value, "MMMM yyyy");
+});
+
+// Added: Function to navigate to previous month
+const previousMonth = () => {
+  selectedDate.value = subMonths(selectedDate.value, 1);
+};
+
+// Added: Function to navigate to next month
+const nextMonth = () => {
+  selectedDate.value = addMonths(selectedDate.value, 1);
+};
 </script>
