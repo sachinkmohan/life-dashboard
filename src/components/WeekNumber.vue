@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { getISOWeek, format } from "date-fns";
+import { getISOWeek, format, subMonths, addMonths } from "date-fns";
 import { ref, computed } from "vue";
 
 const currentWeekNumber: number = getISOWeek(new Date());
@@ -81,15 +81,11 @@ const currentMonthYear = computed(() => {
 
 // Added: Function to navigate to previous month
 const previousMonth = () => {
-  const newDate = new Date(selectedDate.value);
-  newDate.setMonth(newDate.getMonth() - 1);
-  selectedDate.value = newDate;
+  selectedDate.value = subMonths(selectedDate.value, 1);
 };
 
 // Added: Function to navigate to next month
 const nextMonth = () => {
-  const newDate = new Date(selectedDate.value);
-  newDate.setMonth(newDate.getMonth() + 1);
-  selectedDate.value = newDate;
+  selectedDate.value = addMonths(selectedDate.value, 1);
 };
 </script>
