@@ -38,6 +38,9 @@
   - Vue components remain untouched as requested
   - App.vue layout preserved without any changes
 - Added a subtle info text below the "Add subtask" input field to explain the number range expansion logic and subtask splitting.
+- Added Vuetify 3 date picker component to WeekNumber.vue displaying the current month with today's date highlighted.
+- Added left and right navigation arrows to switch between previous and next months.
+- Calendar is displayed in a card below the week progress bar with month/year header.
 
 ### Refactored
 
@@ -550,6 +553,11 @@ interface Task {
   - Vue components remain untouched as requested
   - App.vue layout preserved without any changes
 - Added a subtle info text below the "Add subtask" input field to explain the number range expansion logic and subtask splitting.
+- Added Vuetify 3 date picker component to WeekNumber.vue displaying the current month with today's date highlighted.
+- Added left and right navigation arrows to switch between previous and next months.
+- Calendar is displayed in a card below the week progress bar with month/year header.
+- Reduced calendar size to 75% by adding max-width constraint and setting date-picker width to 300px.
+- Calendar is centered within its container for better visual hierarchy.
 
 ### Changed
 
