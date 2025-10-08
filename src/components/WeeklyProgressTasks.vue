@@ -918,9 +918,50 @@ const getSubtaskInputText = (task: Task) => {
 const updateSubtaskInputText = (task: Task, text: string) => {
   const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
   if (taskIndex !== -1) {
+    // Added: Expand number ranges before updating the input field
     tasks.value[taskIndex].newSubtaskText = text;
+
+    // Clear previous timer if exists
+    const timerId = subtaskInputTimers.get(task.id);
+    if (timerId) clearTimeout(timerId);
+
+    // Set new timer for 2s debounce
+    const newTimer = setTimeout(() => {
+      // Only expand if the input still matches the original text
+      const currentText = tasks.value[taskIndex].newSubtaskText;
+      const expandedText = expandNumberRanges(currentText);
+      if (currentText !== expandedText) {
+        // Replace with expanded value
+        tasks.value[taskIndex].newSubtaskText = expandedText;
+      }
+    }, 2000);
+
+    subtaskInputTimers.set(task.id, newTimer);
   }
 };
+
+// Added: Timer map to track debounce per task
+const subtaskInputTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+// Modified: Helper function to expand number ranges with a max of 10 numbers
+function expandNumberRanges(input: string): string {
+  const rangeRegex = /(\d+),(\d+)\((\d+)\)/g;
+  let expanded = input;
+  let match;
+  while ((match = rangeRegex.exec(input)) !== null) {
+    const start = parseInt(match[1]);
+    const end = parseInt(match[2]);
+    const step = parseInt(match[3]);
+    if (step > 0 && start <= end) {
+      const nums = [];
+      for (let i = start; i <= end && nums.length < 10; i += step) {
+        nums.push(i);
+      }
+      expanded = expanded.replace(match[0], nums.join(","));
+    }
+  }
+  return expanded;
+}
 
 // Added: Get animation class based on task deadline urgency
 const getTaskAnimationClass = (task: Task) => {
