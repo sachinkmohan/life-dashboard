@@ -276,13 +276,23 @@
                                 @update:model-value="
                                   updateSubtaskInputText(task, $event)
                                 "
-                                label="Add subtask"
+                                label="Add subtask or number range(check tip)"
                                 density="compact"
                                 hide-details
                                 variant="outlined"
                                 @keyup.enter="addSubtask(task)"
                                 style="font-size: 0.9em"
                               />
+                              <!-- Added: Subtle info text for number range expansion logic -->
+                              <v-text
+                                class="text-caption text-grey-darken-1 mt-1"
+                                style="font-size: 0.85em"
+                              >
+                                Tip: Enter ranges like <b>1,5(1)</b> to
+                                auto-expand to <b>1,2,3,4,5</b>. Max 10 numbers.
+                                Each value becomes a separate subtask on
+                                pressing enter.
+                              </v-text>
                             </v-col>
                             <v-col
                               cols="4"

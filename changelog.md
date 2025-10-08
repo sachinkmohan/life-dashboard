@@ -37,6 +37,7 @@
   - Automatic cleanup of dark mode class on component unmount
   - Vue components remain untouched as requested
   - App.vue layout preserved without any changes
+- Added a subtle info text below the "Add subtask" input field to explain the number range expansion logic and subtask splitting.
 
 ### Refactored
 
@@ -548,8 +549,7 @@ interface Task {
   - Automatic cleanup of dark mode class on component unmount
   - Vue components remain untouched as requested
   - App.vue layout preserved without any changes
-- Added automatic number range expansion in the "Add subtask" input field of WeeklyProgressTasks.vue.
-  - When the user enters a pattern like "1,10(1)" or "20,40(10)", it is expanded to a comma-separated sequence in the input field itself.
+- Added a subtle info text below the "Add subtask" input field to explain the number range expansion logic and subtask splitting.
 
 ### Changed
 
