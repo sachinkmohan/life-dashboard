@@ -12,6 +12,9 @@
 - Count increments each time a task is checked after being unchecked.
 - Added a "Reset Count" button next to "Uncheck All" with a confirmation dialog to reset all counts to 0.
 - Improved visual hierarchy and styling for the count badge and controls.
+- Added a minimalistic Vuetify 3 linear progress bar to WeekNumber.vue, showing the percentage of the week completed and the days left until Sunday (including today).
+- Used Vuetify 3 styling and components for visual hierarchy.
+- Added logic to calculate week progress and days left.
 
 ### Refactored
 
