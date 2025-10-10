@@ -38,14 +38,15 @@
           <v-card class="mb-4 pa-4">
             <v-row align="center">
               <v-col>
-                <p class="ml-5">{{ item.title }}</p>
+                <p class="ml-5 text-h6">{{ item.title }}</p>
               </v-col>
               <v-col class="d-flex justify-end">
                 <v-btn
                   icon="mdi-delete"
                   @click="deleteCountdown(item.id)"
-                  color="red-lighten-5"
+                  color="red-lighten-2"
                   size="small"
+                  variant="text"
                 >
                 </v-btn>
               </v-col>
@@ -57,6 +58,9 @@
               mainColor="#e08996"
               secondFlipColor="orange"
             />
+            <v-card-text class="mt-2 pulse">
+              {{ item.countdown }}
+            </v-card-text>
           </v-card>
         </v-col>
       </v-row>
@@ -157,3 +161,24 @@ onMounted(() => {
   fetchCountdowns();
 });
 </script>
+
+<style scoped>
+.pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+</style>
