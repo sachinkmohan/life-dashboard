@@ -3,14 +3,7 @@
     <!-- Added: Header with weekly statistics -->
     <div class="d-flex align-center justify-space-between mb-6">
       <h2 class="text-h5 font-weight-bold">Other Tasks</h2>
-      <v-btn
-        @click="
-          {
-            lastWeekCount++;
-          }
-        "
-        >I</v-btn
-      >
+
       <div class="text-right">
         <div class="d-flex align-center justify-end">
           <p class="text-body-2 text-medium-emphasis">
@@ -33,11 +26,7 @@
             class="text-body-2 font-weight-semibold"
             :class="percentageChange > 0 ? 'text-success' : 'text-error'"
           >
-            {{
-              percentageChange !== null
-                ? Math.abs(percentageChange).toFixed(1)
-                : "N/A"
-            }}%
+            {{ Math.abs(percentageChange).toFixed(1) }}%
           </span>
         </div>
         <p class="text-caption text-medium-emphasis">
