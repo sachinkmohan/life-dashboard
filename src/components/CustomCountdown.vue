@@ -102,7 +102,7 @@ function getToday(): string {
 
 // Helper: Generate unique ID
 function generateId(): string {
-  return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  return Date.now().toString() + Math.random().toString(36).slice(2, 11);
 }
 
 // Load countdowns from localStorage
