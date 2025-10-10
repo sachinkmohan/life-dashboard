@@ -3,17 +3,25 @@
     <!-- Added: Header with weekly statistics -->
     <div class="d-flex align-center justify-space-between mb-6">
       <h2 class="text-h5 font-weight-bold">Other Tasks</h2>
+      <v-btn
+        @click="
+          {
+            lastWeekCount++;
+          }
+        "
+        >I</v-btn
+      >
       <div class="text-right">
         <div class="d-flex align-center justify-end">
-          <p class="text-body-2 text-medium-emphasis mr-2">
+          <p class="text-body-2 text-medium-emphasis">
             This Week:
             <span class="font-weight-semibold text-high-emphasis">{{
               thisWeekCount
             }}</span>
           </p>
-          <!-- Added: Conditional arrow and percentage change display -->
+          <!-- Modified: Check for null explicitly and use optional chaining -->
           <v-icon
-            v-if="percentageChange !== 0"
+            v-if="percentageChange !== null && percentageChange !== 0"
             :color="percentageChange > 0 ? 'success' : 'error'"
             size="small"
             class="mr-1"
@@ -21,11 +29,15 @@
             {{ percentageChange > 0 ? "mdi-arrow-up" : "mdi-arrow-down" }}
           </v-icon>
           <span
-            v-if="percentageChange !== 0"
+            v-if="percentageChange !== null && percentageChange !== 0"
             class="text-body-2 font-weight-semibold"
             :class="percentageChange > 0 ? 'text-success' : 'text-error'"
           >
-            {{ Math.abs(percentageChange).toFixed(1) }}%
+            {{
+              percentageChange !== null
+                ? Math.abs(percentageChange).toFixed(1)
+                : "N/A"
+            }}%
           </span>
         </div>
         <p class="text-caption text-medium-emphasis">
@@ -188,10 +200,10 @@ const thisWeekCount = ref(0);
 const lastWeekCount = ref(0);
 const weekStartDate = ref("");
 
-// Added: Computed property for percentage change
-const percentageChange = computed(() => {
+// Modified: Explicitly type the return as number | null to handle TypeScript properly
+const percentageChange = computed<number | null>(() => {
   if (lastWeekCount.value === 0) {
-    return thisWeekCount.value > 0 ? 100 : 0;
+    return null;
   }
   return (
     ((thisWeekCount.value - lastWeekCount.value) / lastWeekCount.value) * 100
