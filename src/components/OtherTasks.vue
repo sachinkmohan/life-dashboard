@@ -89,7 +89,7 @@
                     <!-- Modified: Added @update:model-value to track completions -->
                     <v-checkbox
                       v-model="task.done"
-                      @update:model-value="handleTaskToggle(task, $event)"
+                      @update:model-value="handleTaskToggle($event)"
                       color="success"
                       hide-details
                     />
@@ -222,9 +222,10 @@ const checkAndResetWeek = () => {
   }
 };
 
-// Added: Function to handle task toggle (checking/unchecking)
-const handleTaskToggle = (task: Task, newValue: boolean) => {
-  if (newValue) {
+// Modified: Accept boolean | null and add type guard to handle both cases
+const handleTaskToggle = (newValue: boolean | null) => {
+  // Type guard: only proceed if newValue is explicitly true
+  if (newValue === true) {
     // Task was checked (completed)
     thisWeekCount.value++;
     saveWeeklyStats();
