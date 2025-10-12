@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2>Weekly Focus</h2>
-    <v-container style="overflow-x: auto">
+    <v-container style="width: 400px; overflow-x: auto">
       <v-row align="center" no-gutters>
         <v-col>
           <v-text-field
@@ -362,6 +362,7 @@
                                       ? 'text-decoration: line-through; color: #888; font-size: 0.9em; text-align: left;'
                                       : 'font-size: 0.9em; text-align: left;'
                                   "
+                                  class="text-pre-wrap"
                                 >
                                   {{ subtask.text }}
                                 </v-list-item-title>
