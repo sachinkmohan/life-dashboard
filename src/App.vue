@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from "vue";
 import WeekNumber from "./components/WeekNumber.vue";
 import DailyTasks from "./components/DailyTasks.vue";
 import CustomCountdown from "./components/CustomCountdown.vue";
 import OtherTasks from "./components/OtherTasks.vue";
 import WeeklyProgressTasks from "./components/WeeklyProgressTasks.vue";
+import ReadingTracker from "./components/Reading Tracker.vue";
 
 const isDarkMode = ref(false);
 
@@ -16,9 +17,9 @@ const toggleDarkMode = () => {
 const updateBodyClass = () => {
   const body = document.body;
   if (isDarkMode.value) {
-    body.classList.add('dark-mode');
+    body.classList.add("dark-mode");
   } else {
-    body.classList.remove('dark-mode');
+    body.classList.remove("dark-mode");
   }
 };
 
@@ -27,7 +28,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  document.body.classList.remove('dark-mode');
+  document.body.classList.remove("dark-mode");
 });
 </script>
 
@@ -55,11 +56,14 @@ onUnmounted(() => {
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="5">
+      <v-col cols="4">
         <CustomCountdown />
       </v-col>
-      <v-col cols="7">
+      <v-col cols="4">
         <WeeklyProgressTasks />
+      </v-col>
+      <v-col cols="4">
+        <ReadingTracker />
       </v-col>
     </v-row>
   </v-container>

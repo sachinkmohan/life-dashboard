@@ -1,40 +1,6 @@
 <template>
   <div>
-    <!-- Added: Header with weekly statistics -->
-    <div class="d-flex align-center justify-space-between mb-6">
-      <h2 class="text-h5 font-weight-bold ml-3">Other Tasks</h2>
-
-      <div class="text-right">
-        <div class="d-flex align-center justify-end">
-          <p class="text-body-2 text-medium-emphasis">
-            This Week:
-            <span class="font-weight-semibold text-high-emphasis">{{
-              thisWeekCount
-            }}</span>
-          </p>
-          <!-- Modified: Check for null explicitly and use optional chaining -->
-          <v-icon
-            v-if="percentageChange !== null && percentageChange !== 0"
-            :color="percentageChange > 0 ? 'success' : 'error'"
-            size="small"
-            class="mr-1"
-          >
-            {{ percentageChange > 0 ? "mdi-arrow-up" : "mdi-arrow-down" }}
-          </v-icon>
-          <span
-            v-if="percentageChange !== null && percentageChange !== 0"
-            class="text-body-2 font-weight-semibold"
-            :class="percentageChange > 0 ? 'text-success' : 'text-error'"
-          >
-            {{ Math.abs(percentageChange).toFixed(1) }}%
-          </span>
-        </div>
-        <p class="text-caption text-medium-emphasis">
-          Last Week: {{ lastWeekCount }}
-        </p>
-      </div>
-    </div>
-
+    <h2>Reading Tracker</h2>
     <v-container style="width: 400px; overflow-x: auto">
       <v-row align="center" no-gutters>
         <v-col>
@@ -67,16 +33,27 @@
 
       <v-row>
         <v-col cols="12">
-          <v-btn
-            v-if="tasks.length > 0"
-            @click="uncheckAll"
-            color="secondary"
-            variant="outlined"
-            class="mb-2"
-            size="small"
-          >
-            Uncheck All
-          </v-btn>
+          <div class="d-flex align-center mb-2" v-if="tasks.length > 0">
+            <!-- Uncheck All Button -->
+            <v-btn
+              @click="uncheckAll"
+              color="secondary"
+              variant="outlined"
+              size="small"
+              class="mr-2"
+            >
+              Uncheck All
+            </v-btn>
+            <!-- Reset Count Button -->
+            <v-btn
+              @click="showResetDialog = true"
+              color="warning"
+              variant="outlined"
+              size="small"
+            >
+              Reset Count
+            </v-btn>
+          </div>
           <template v-if="tasks.length > 0">
             <v-card variant="outlined">
               <v-list>
@@ -84,16 +61,17 @@
                   v-for="task in sortedTasks"
                   :key="task.id"
                   lines="one"
+                  class="py-1"
                 >
                   <template v-slot:prepend>
-                    <!-- Modified: Added @update:model-value to track completions -->
                     <v-checkbox
                       v-model="task.done"
-                      @update:model-value="handleTaskToggle($event)"
                       color="success"
                       hide-details
+                      @update:model-value="onTaskCheck(task)"
                     />
                   </template>
+                  <!-- Fix: Always use v-list-item-title for main content -->
                   <v-list-item-title
                     v-if="editingTaskId !== task.id"
                     :style="
@@ -101,9 +79,15 @@
                         ? 'text-decoration: line-through; color: #888;'
                         : ''
                     "
-                    class="text-wrap break-word border-b"
+                    class="d-flex flex-row align-center justify-space-between w-100 border-b text-wrap break-word"
+                    style="border-color: #eee !important"
                   >
-                    {{ task.text }}
+                    <span class="text-body-1 text-left">{{ task.text }}</span>
+                    <span
+                      class="text-body-2 font-weight-bold text-primary ml-2 text-right task-count-badge"
+                    >
+                      {{ task.count }}x
+                    </span>
                   </v-list-item-title>
                   <v-text-field
                     v-else
@@ -158,6 +142,24 @@
           </template>
         </v-col>
       </v-row>
+      <!-- Reset Count Confirmation Dialog -->
+      <v-dialog v-model="showResetDialog" max-width="350">
+        <v-card>
+          <v-card-title class="headline">Reset All Counts?</v-card-title>
+          <v-card-text>
+            Are you sure you want to reset all task counts to 0?
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn color="grey" variant="text" @click="showResetDialog = false">
+              Cancel
+            </v-btn>
+            <v-btn color="warning" variant="text" @click="resetAllCounts">
+              Reset
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-container>
   </div>
 </template>
@@ -166,136 +168,84 @@
 import { ref, watch, onMounted, computed } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
+// Add count property to Task interface
 interface Task {
   id: string;
   text: string;
   done: boolean;
+  count: number; // Added: count of completions
 }
-
-// Added: Interface for weekly tracking data
-interface WeeklyStats {
-  thisWeek: number;
-  lastWeek: number;
-  weekStartDate: string; // ISO date string for Monday of current week
-}
-
 const newTask = ref("");
 const tasks = ref<Task[]>([]);
 const editingTaskId = ref<string | null>(null);
 const editedTaskText = ref("");
+const showResetDialog = ref(false); // For reset count dialog
 
-// Added: Weekly statistics tracking
-const thisWeekCount = ref(0);
-const lastWeekCount = ref(0);
-const weekStartDate = ref("");
-
-// Modified: Explicitly type the return as number | null to handle TypeScript properly
-const percentageChange = computed<number | null>(() => {
-  if (lastWeekCount.value === 0) {
-    return null;
-  }
-  return (
-    ((thisWeekCount.value - lastWeekCount.value) / lastWeekCount.value) * 100
-  );
-});
-
-// Added: Function to get the Monday of the current week
-const getMondayOfWeek = (date: Date): string => {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
-};
-
-// Added: Function to check if we need to reset weekly counter
-const checkAndResetWeek = () => {
-  const currentMonday = getMondayOfWeek(new Date());
-
-  if (weekStartDate.value !== currentMonday) {
-    // New week detected, move this week's count to last week
-    lastWeekCount.value = thisWeekCount.value;
-    thisWeekCount.value = 0;
-    weekStartDate.value = currentMonday;
-    saveWeeklyStats();
-  }
-};
-
-// Modified: Accept boolean | null and add type guard to handle both cases
-const handleTaskToggle = (newValue: boolean | null) => {
-  // Type guard: only proceed if newValue is explicitly true
-  if (newValue === true) {
-    // Task was checked (completed)
-    thisWeekCount.value++;
-    saveWeeklyStats();
-  }
-};
-
-// Added: Function to save weekly stats to localStorage
-const saveWeeklyStats = () => {
-  const stats: WeeklyStats = {
-    thisWeek: thisWeekCount.value,
-    lastWeek: lastWeekCount.value,
-    weekStartDate: weekStartDate.value,
-  };
-  localStorage.setItem("otherTasksWeeklyStats", JSON.stringify(stats));
-};
-
-// Added: Function to load weekly stats from localStorage
-const loadWeeklyStats = () => {
-  const saved = localStorage.getItem("otherTasksWeeklyStats");
-  if (saved) {
-    const stats: WeeklyStats = JSON.parse(saved);
-    thisWeekCount.value = stats.thisWeek;
-    lastWeekCount.value = stats.lastWeek;
-    weekStartDate.value = stats.weekStartDate;
-  } else {
-    // Initialize with current Monday if no data exists
-    weekStartDate.value = getMondayOfWeek(new Date());
-  }
-};
-
+// Add task function
 const addTask = () => {
   if (newTask.value.trim() === "") return;
-  tasks.value.push({ id: uuidv4(), text: newTask.value, done: false });
+  // Added: initialize count to 0
+  tasks.value.push({
+    id: uuidv4(),
+    text: newTask.value,
+    done: false,
+    count: 0,
+  });
   newTask.value = "";
 };
 
+// Delete task function
 const deleteTask = (id: string) => {
   tasks.value = tasks.value.filter((task) => task.id !== id);
 };
 
+// Start editing a task
 const startEditing = (task: Task) => {
   editingTaskId.value = task.id;
   editedTaskText.value = task.text;
 };
 
+// Save edited task
 const saveEdit = (task: Task) => {
   if (editedTaskText.value.trim() === "") return;
   task.text = editedTaskText.value;
+  // Added: finish editing after saving
   editingTaskId.value = null;
   editedTaskText.value = "";
 };
 
+// Cancel editing
 const cancelEdit = () => {
   editingTaskId.value = null;
   editedTaskText.value = "";
 };
 
-// Modified: Load both tasks and weekly stats on mount, then check for week reset
-onMounted(() => {
-  const savedTasks = localStorage.getItem("otherTasks");
-  if (savedTasks) tasks.value = JSON.parse(savedTasks);
+// When a task is checked, increment count if it transitions from not done to done
+const onTaskCheck = (task: Task) => {
+  // Only increment if marking as done
+  if (task.done) {
+    task.count = (task.count || 0) + 1;
+  }
+};
 
-  loadWeeklyStats();
-  checkAndResetWeek();
+// Load tasks from localStorage on component mount
+onMounted(() => {
+  const savedTasks = localStorage.getItem("tasks");
+  if (savedTasks) {
+    // Added: ensure count property exists for backward compatibility
+    const loaded = JSON.parse(savedTasks);
+    tasks.value = loaded.map((t: any) => ({
+      ...t,
+      count: typeof t.count === "number" ? t.count : 0,
+    }));
+  }
 });
 
+// Watch for task changes and update localStorage
 watch(
   tasks,
   (newTasks) => {
-    localStorage.setItem("otherTasks", JSON.stringify(newTasks));
+    localStorage.setItem("tasks", JSON.stringify(newTasks));
   },
   { deep: true }
 );
@@ -305,9 +255,34 @@ const sortedTasks = computed(() =>
 );
 
 const uncheckAll = () => {
+  // Uncheck all tasks, but do not reset count
   tasks.value = tasks.value.map((task) => ({
     ...task,
     done: false,
   }));
 };
+
+// Reset all counts to 0, with confirmation
+const resetAllCounts = () => {
+  tasks.value = tasks.value.map((task) => ({
+    ...task,
+    count: 0,
+  }));
+  showResetDialog.value = false;
+};
 </script>
+
+<style scoped>
+/* Added: Styling for the count badge */
+.task-count-badge {
+  background: #f5f5f5;
+  color: #1976d2;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.85em;
+  margin-left: 8px;
+  font-weight: 600;
+  vertical-align: middle;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+</style>
