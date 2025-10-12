@@ -230,7 +230,7 @@ const onTaskCheck = (task: Task) => {
 
 // Load tasks from localStorage on component mount
 onMounted(() => {
-  const savedTasks = localStorage.getItem("tasks");
+  const savedTasks = localStorage.getItem("readingTrackerTasks"); // Modified: use unique key
   if (savedTasks) {
     // Added: ensure count property exists for backward compatibility
     const loaded = JSON.parse(savedTasks);
@@ -245,7 +245,7 @@ onMounted(() => {
 watch(
   tasks,
   (newTasks) => {
-    localStorage.setItem("tasks", JSON.stringify(newTasks));
+    localStorage.setItem("readingTrackerTasks", JSON.stringify(newTasks)); // Modified: use unique key
   },
   { deep: true }
 );
