@@ -108,13 +108,6 @@ function generateId(): string {
   return Date.now().toString() + Math.random().toString(36).slice(2, 11);
 }
 
-// Load countdowns from localStorage
-function fetchCountdowns() {
-  // Added: localStorage fetch logic
-  const stored = localStorage.getItem("countdowns");
-  countdowns.value = stored ? JSON.parse(stored) : [];
-}
-
 function resetTodaysCountdown() {
   const stored = localStorage.getItem("countdowns");
   countdowns.value = stored ? JSON.parse(stored) : [];
