@@ -60,7 +60,7 @@
               secondFlipColor="orange"
             />
             <v-card-text class="mt-2 pulse">
-              {{ item.countdown }}
+              {{ formatCountdownDate(item.countdown) }}
             </v-card-text>
           </v-card>
         </v-col>
@@ -71,6 +71,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+// Added: Import format from date-fns for date formatting
+import { format } from "date-fns";
 //@ts-ignore
 import { Countdown } from "vue3-flip-countdown";
 
@@ -166,6 +168,40 @@ const sortedCountdowns = computed(() => {
     return dateA.getTime() - dateB.getTime();
   });
 });
+
+// Added: Helper function to format countdown date as "14th Oct 2025, 10:30 pm"
+function formatCountdownDate(countdown: string): string {
+  try {
+    const date = new Date(countdown);
+
+    // Get ordinal suffix for day (1st, 2nd, 3rd, 4th, etc.)
+    const day = date.getDate();
+    const ordinal = getOrdinalSuffix(day);
+
+    // Format as "14th Oct 2025, 10:30 pm"
+    const monthYear = format(date, "MMM yyyy");
+    const time = format(date, "h:mm a");
+
+    return `${day}${ordinal} ${monthYear}, ${time}`;
+  } catch (error) {
+    return countdown; // Fallback to original string if parsing fails
+  }
+}
+
+// Added: Helper function to get ordinal suffix (st, nd, rd, th)
+function getOrdinalSuffix(day: number): string {
+  if (day > 3 && day < 21) return "th"; // 11th-20th
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
+}
 
 // On mount, fetch countdowns
 onMounted(() => {
