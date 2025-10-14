@@ -160,13 +160,15 @@ function deleteCountdown(id: string) {
 
 // Added: Computed property to sort countdowns by deadline (soonest first)
 const sortedCountdowns = computed(() => {
-  return [...countdowns.value].sort((a, b) => {
-    // Parse countdown strings to Date objects for comparison
-    const dateA = new Date(a.countdown);
-    const dateB = new Date(b.countdown);
-    // Sort ascending - earlier dates come first
-    return dateA.getTime() - dateB.getTime();
-  });
+  return [...countdowns.value]
+    .filter((item) => !isNaN(new Date(item.countdown).getTime()))
+    .sort((a, b) => {
+      // Parse countdown strings to Date objects for comparison
+      const dateA = new Date(a.countdown);
+      const dateB = new Date(b.countdown);
+      // Sort ascending - earlier dates come first
+      return dateA.getTime() - dateB.getTime();
+    });
 });
 
 // Added: Helper function to format countdown date as "14th Oct 2025, 10:30 pm"
@@ -184,6 +186,7 @@ function formatCountdownDate(countdown: string): string {
 
     return `${day}${ordinal} ${monthYear}, ${time}`;
   } catch (error) {
+    console.error("Error formatting countdown date:", error);
     return countdown; // Fallback to original string if parsing fails
   }
 }
@@ -206,7 +209,6 @@ function getOrdinalSuffix(day: number): string {
 // On mount, fetch countdowns
 onMounted(() => {
   resetTodaysCountdown();
-  fetchCountdowns();
 });
 </script>
 
