@@ -33,7 +33,8 @@
 
       <v-row>
         <!-- Changed: Use full width for each countdown card -->
-        <v-col cols="12" v-for="item in countdowns" :key="item.id">
+        <!-- Modified: Use sortedCountdowns instead of countdowns for proper ordering -->
+        <v-col cols="12" v-for="item in sortedCountdowns" :key="item.id">
           <!-- Changed: Use Vuetify 3 card for countdown display -->
           <v-card class="mb-4 pa-4">
             <v-row align="center">
@@ -59,7 +60,7 @@
               secondFlipColor="orange"
             />
             <v-card-text class="mt-2 pulse">
-              {{ item.countdown }}
+              {{ formatCountdownDate(item.countdown) }}
             </v-card-text>
           </v-card>
         </v-col>
@@ -69,7 +70,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+// Added: Import format from date-fns for date formatting
+import { format } from "date-fns";
 //@ts-ignore
 import { Countdown } from "vue3-flip-countdown";
 
@@ -103,13 +106,6 @@ function getToday(): string {
 // Helper: Generate unique ID
 function generateId(): string {
   return Date.now().toString() + Math.random().toString(36).slice(2, 11);
-}
-
-// Load countdowns from localStorage
-function fetchCountdowns() {
-  // Added: localStorage fetch logic
-  const stored = localStorage.getItem("countdowns");
-  countdowns.value = stored ? JSON.parse(stored) : [];
 }
 
 function resetTodaysCountdown() {
@@ -155,10 +151,57 @@ function deleteCountdown(id: string) {
   saveCountdowns();
 }
 
+// Added: Computed property to sort countdowns by deadline (soonest first)
+const sortedCountdowns = computed(() => {
+  return [...countdowns.value]
+    .filter((item) => !isNaN(new Date(item.countdown).getTime()))
+    .sort((a, b) => {
+      // Parse countdown strings to Date objects for comparison
+      const dateA = new Date(a.countdown);
+      const dateB = new Date(b.countdown);
+      // Sort ascending - earlier dates come first
+      return dateA.getTime() - dateB.getTime();
+    });
+});
+
+// Added: Helper function to format countdown date as "14th Oct 2025, 10:30 pm"
+function formatCountdownDate(countdown: string): string {
+  try {
+    const date = new Date(countdown);
+
+    // Get ordinal suffix for day (1st, 2nd, 3rd, 4th, etc.)
+    const day = date.getDate();
+    const ordinal = getOrdinalSuffix(day);
+
+    // Format as "14th Oct 2025, 10:30 pm"
+    const monthYear = format(date, "MMM yyyy");
+    const time = format(date, "h:mm a");
+
+    return `${day}${ordinal} ${monthYear}, ${time}`;
+  } catch (error) {
+    console.error("Error formatting countdown date:", error);
+    return countdown; // Fallback to original string if parsing fails
+  }
+}
+
+// Added: Helper function to get ordinal suffix (st, nd, rd, th)
+function getOrdinalSuffix(day: number): string {
+  if (day > 3 && day < 21) return "th"; // 11th-20th
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
+}
+
 // On mount, fetch countdowns
 onMounted(() => {
   resetTodaysCountdown();
-  fetchCountdowns();
 });
 </script>
 
