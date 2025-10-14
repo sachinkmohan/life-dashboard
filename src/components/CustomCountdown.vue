@@ -33,7 +33,8 @@
 
       <v-row>
         <!-- Changed: Use full width for each countdown card -->
-        <v-col cols="12" v-for="item in countdowns" :key="item.id">
+        <!-- Modified: Use sortedCountdowns instead of countdowns for proper ordering -->
+        <v-col cols="12" v-for="item in sortedCountdowns" :key="item.id">
           <!-- Changed: Use Vuetify 3 card for countdown display -->
           <v-card class="mb-4 pa-4">
             <v-row align="center">
@@ -69,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 //@ts-ignore
 import { Countdown } from "vue3-flip-countdown";
 
@@ -154,6 +155,17 @@ function deleteCountdown(id: string) {
   countdowns.value = countdowns.value.filter((item) => item.id !== id);
   saveCountdowns();
 }
+
+// Added: Computed property to sort countdowns by deadline (soonest first)
+const sortedCountdowns = computed(() => {
+  return [...countdowns.value].sort((a, b) => {
+    // Parse countdown strings to Date objects for comparison
+    const dateA = new Date(a.countdown);
+    const dateB = new Date(b.countdown);
+    // Sort ascending - earlier dates come first
+    return dateA.getTime() - dateB.getTime();
+  });
+});
 
 // On mount, fetch countdowns
 onMounted(() => {
