@@ -1,6 +1,25 @@
 <template>
   <div>
-    <h2>Weekly Focus</h2>
+    <!-- Modified: Added flex container for heading and progress indicator -->
+    <div class="d-flex justify-space-between align-center mb-4">
+      <h2 class="ml-4">Weekly Focus</h2>
+      <v-progress-circular
+        :model-value="overallProgress"
+        :size="50"
+        :width="5"
+        color="primary"
+        bg-color="grey-lighten-3"
+      >
+        <!-- Added: Center text showing completion count using default slot -->
+        <span class="text-body-1 font-weight-bold">
+          {{
+            totalSubtasksCount === 0
+              ? "-"
+              : `${completedSubtasksCount}/${totalSubtasksCount}`
+          }}
+        </span>
+      </v-progress-circular>
+    </div>
     <v-container style="width: 400px; overflow-x: auto">
       <v-row align="center" no-gutters>
         <v-col>
@@ -996,6 +1015,29 @@ const getTaskAnimationClass = (task: Task) => {
 
   return "";
 };
+
+// Added: Computed property to calculate total number of subtasks across all tasks
+const totalSubtasksCount = computed(() => {
+  return tasks.value.reduce((total, task) => {
+    return total + (task.subtasks?.length || 0);
+  }, 0);
+});
+
+// Added: Computed property to calculate number of completed subtasks
+const completedSubtasksCount = computed(() => {
+  return tasks.value.reduce((total, task) => {
+    const completedInTask = task.subtasks?.filter((s) => s.done).length || 0;
+    return total + completedInTask;
+  }, 0);
+});
+
+// Added: Computed property to calculate overall completion percentage for progress circle
+const overallProgress = computed(() => {
+  if (totalSubtasksCount.value === 0) return 0;
+  return Math.round(
+    (completedSubtasksCount.value / totalSubtasksCount.value) * 100
+  );
+});
 </script>
 
 <style scoped>
