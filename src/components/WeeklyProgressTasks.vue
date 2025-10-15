@@ -12,7 +12,11 @@
       >
         <!-- Added: Center text showing completion count using default slot -->
         <span class="text-body-1 font-weight-bold">
-          {{ completedSubtasksCount }}/{{ totalSubtasksCount }}
+          {{
+            totalSubtasksCount === 0
+              ? "-"
+              : `${completedSubtasksCount}/${totalSubtasksCount}`
+          }}
         </span>
       </v-progress-circular>
     </div>
