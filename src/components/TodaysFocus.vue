@@ -54,18 +54,36 @@
                             {{ item.text }}
                           </v-list-item-title>
 
-                          <!-- Show if this is a subtask and display parent task name -->
-                          <v-list-item-subtitle
-                            v-if="item.isSubtask"
-                            class="mt-1"
+                          <!-- Added: Display source component and parent task info -->
+                          <div
+                            class="mt-1 d-flex align-center"
+                            style="gap: 4px"
                           >
-                            <v-icon size="x-small" class="mr-1"
-                              >mdi-subdirectory-arrow-right</v-icon
+                            <!-- Added: Source component badge -->
+                            <v-chip
+                              :color="getSourceColor(item.sourceComponent)"
+                              size="x-small"
+                              variant="flat"
                             >
-                            <span class="text-caption">{{
-                              item.parentTaskText
-                            }}</span>
-                          </v-list-item-subtitle>
+                              <v-icon start size="x-small">{{
+                                getSourceIcon(item.sourceComponent)
+                              }}</v-icon>
+                              {{ item.sourceComponent }}
+                            </v-chip>
+
+                            <!-- Show parent task name for subtasks -->
+                            <v-chip
+                              v-if="item.isSubtask"
+                              size="x-small"
+                              variant="outlined"
+                              color="grey"
+                            >
+                              <v-icon start size="x-small"
+                                >mdi-subdirectory-arrow-right</v-icon
+                              >
+                              {{ item.parentTaskText }}
+                            </v-chip>
+                          </div>
                         </div>
 
                         <!-- Remove from focus button (NOT delete) -->
@@ -105,15 +123,16 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
 
-// Interface for focused items stored in this component
+// Modified: Added sourceComponent field to track which component the item came from
 interface FocusedItem {
-  id: string; // Unique ID for the focused item entry
-  taskId: string; // ID of the task in WeeklyProgressTasks
-  subtaskId?: string; // ID of the subtask if this is a subtask focus
-  text: string; // Display text
-  done: boolean; // Completion status
-  isSubtask: boolean; // Whether this is a subtask or main task
-  parentTaskText?: string; // Parent task text if this is a subtask
+  id: string;
+  taskId: string;
+  subtaskId?: string;
+  text: string;
+  done: boolean;
+  isSubtask: boolean;
+  parentTaskText?: string;
+  sourceComponent: string; // Added: "Daily Tasks", "Other Tasks", or "Weekly Focus"
 }
 
 // Reactive array to hold all focused items
@@ -126,7 +145,7 @@ onMounted(() => {
     focusedItems.value = JSON.parse(saved);
   }
 
-  // Listen for custom events from WeeklyProgressTasks component
+  // Listen for custom events from all task components
   window.addEventListener("task-focused", handleTaskFocused as EventListener);
   window.addEventListener(
     "task-unfocused",
@@ -134,9 +153,16 @@ onMounted(() => {
   );
 });
 
-// Handle when a task/subtask is focused from WeeklyProgressTasks
+// Modified: Extract sourceComponent from event detail
 const handleTaskFocused = (event: CustomEvent) => {
-  const { taskId, subtaskId, text, isSubtask, parentTaskText } = event.detail;
+  const {
+    taskId,
+    subtaskId,
+    text,
+    isSubtask,
+    parentTaskText,
+    sourceComponent,
+  } = event.detail;
 
   // Check if already in focus to prevent duplicates
   const exists = focusedItems.value.some(
@@ -144,7 +170,7 @@ const handleTaskFocused = (event: CustomEvent) => {
   );
 
   if (!exists) {
-    // Add new focused item
+    // Modified: Include sourceComponent in the focused item
     focusedItems.value.push({
       id: `${taskId}-${subtaskId || "main"}`,
       taskId,
@@ -153,11 +179,12 @@ const handleTaskFocused = (event: CustomEvent) => {
       done: false,
       isSubtask,
       parentTaskText,
+      sourceComponent, // Added: Store source component name
     });
   }
 };
 
-// Handle when a task/subtask is unfocused from WeeklyProgressTasks
+// Handle when a task/subtask is unfocused
 const handleTaskUnfocused = (event: CustomEvent) => {
   const { taskId, subtaskId } = event.detail;
 
@@ -167,9 +194,9 @@ const handleTaskUnfocused = (event: CustomEvent) => {
   );
 };
 
-// Remove item from today's focus (does NOT delete from WeeklyProgressTasks)
+// Remove item from today's focus (does NOT delete from source component)
 const removeFromFocus = (item: FocusedItem) => {
-  // Dispatch event to notify WeeklyProgressTasks to update its focus state
+  // Dispatch event to notify source component to update its focus state
   window.dispatchEvent(
     new CustomEvent("remove-from-focus", {
       detail: { taskId: item.taskId, subtaskId: item.subtaskId },
@@ -182,7 +209,7 @@ const removeFromFocus = (item: FocusedItem) => {
 
 // Clear all focused items
 const clearAllFocus = () => {
-  // Notify WeeklyProgressTasks for each item
+  // Notify source components for each item
   focusedItems.value.forEach((item) => {
     window.dispatchEvent(
       new CustomEvent("remove-from-focus", {
@@ -201,7 +228,7 @@ const toggleItemDone = (item: FocusedItem, done: boolean) => {
   if (itemIndex !== -1) {
     focusedItems.value[itemIndex].done = done;
 
-    // Sync with WeeklyProgressTasks
+    // Sync with source component
     window.dispatchEvent(
       new CustomEvent("sync-focus-done", {
         detail: {
@@ -222,6 +249,34 @@ watch(
   },
   { deep: true }
 );
+
+// Added: Get color for source component badge
+const getSourceColor = (sourceComponent: string) => {
+  switch (sourceComponent) {
+    case "Daily Tasks":
+      return "blue";
+    case "Other Tasks":
+      return "purple";
+    case "Weekly Focus":
+      return "green";
+    default:
+      return "grey";
+  }
+};
+
+// Added: Get icon for source component badge
+const getSourceIcon = (sourceComponent: string) => {
+  switch (sourceComponent) {
+    case "Daily Tasks":
+      return "mdi-calendar-check";
+    case "Other Tasks":
+      return "mdi-clipboard-list";
+    case "Weekly Focus":
+      return "mdi-target";
+    default:
+      return "mdi-star";
+  }
+};
 </script>
 
 <style scoped>

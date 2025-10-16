@@ -97,6 +97,14 @@
                     style="max-width: 200px"
                   />
                   <template v-slot:append>
+                    <!-- Added: Bullseye button to toggle task focus -->
+                    <v-btn
+                      icon="mdi-bullseye"
+                      @click="toggleTaskFocus(task)"
+                      :color="task.isFocused ? 'deep-orange' : 'grey-darken-1'"
+                      variant="text"
+                      size="small"
+                    />
                     <v-btn
                       v-if="editingTaskId !== task.id"
                       icon="mdi-pencil"
@@ -168,13 +176,15 @@
 import { ref, watch, onMounted, computed } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
-// Add count property to Task interface
+// Modified: Add isFocused property to Task interface
 interface Task {
   id: string;
   text: string;
   done: boolean;
-  count: number; // Added: count of completions
+  count: number;
+  isFocused?: boolean; // Added: Track if task is in today's focus
 }
+
 const newTask = ref("");
 const tasks = ref<Task[]>([]);
 const editingTaskId = ref<string | null>(null);
@@ -232,23 +242,75 @@ const onTaskCheck = (task: Task) => {
 onMounted(() => {
   const savedTasks = localStorage.getItem("tasks");
   if (savedTasks) {
-    // Added: ensure count property exists for backward compatibility
+    // Modified: ensure count and isFocused properties exist for backward compatibility
     const loaded = JSON.parse(savedTasks);
     tasks.value = loaded.map((t: any) => ({
       ...t,
       count: typeof t.count === "number" ? t.count : 0,
+      isFocused: t.isFocused ?? false, // Added: Initialize focus state
     }));
   }
+
+  // Added: Listen for events from TodaysFocus component
+  window.addEventListener(
+    "remove-from-focus",
+    handleRemoveFromFocus as EventListener
+  );
+  window.addEventListener(
+    "sync-focus-done",
+    handleSyncFocusDone as EventListener
+  );
 });
 
-// Watch for task changes and update localStorage
-watch(
-  tasks,
-  (newTasks) => {
-    localStorage.setItem("tasks", JSON.stringify(newTasks));
-  },
-  { deep: true }
-);
+// Added: Handle when item is removed from TodaysFocus
+const handleRemoveFromFocus = (event: CustomEvent) => {
+  const { taskId } = event.detail;
+
+  const taskIndex = tasks.value.findIndex((t) => t.id === taskId);
+  if (taskIndex !== -1) {
+    tasks.value[taskIndex].isFocused = false;
+  }
+};
+
+// Added: Sync done status from TodaysFocus back to this component
+const handleSyncFocusDone = (event: CustomEvent) => {
+  const { taskId, done } = event.detail;
+
+  const taskIndex = tasks.value.findIndex((t) => t.id === taskId);
+  if (taskIndex !== -1) {
+    tasks.value[taskIndex].done = done;
+  }
+};
+
+// Added: Toggle focus state for task
+const toggleTaskFocus = (task: Task) => {
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    const newFocusState = !tasks.value[taskIndex].isFocused;
+    tasks.value[taskIndex].isFocused = newFocusState;
+
+    if (newFocusState) {
+      // Dispatch event to add to TodaysFocus
+      window.dispatchEvent(
+        new CustomEvent("task-focused", {
+          detail: {
+            taskId: task.id,
+            text: task.text,
+            isSubtask: false,
+            sourceComponent: "Daily Tasks", // Added: Identify source component
+          },
+        })
+      );
+    } else {
+      // Dispatch event to remove from TodaysFocus
+      window.dispatchEvent(
+        new CustomEvent("task-unfocused", {
+          detail: { taskId: task.id },
+        })
+      );
+    }
+  }
+};
 
 const sortedTasks = computed(() =>
   tasks.value.slice().sort((a, b) => Number(a.done) - Number(b.done))

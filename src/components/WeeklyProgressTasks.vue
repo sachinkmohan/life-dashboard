@@ -841,13 +841,14 @@ const toggleTaskFocus = (task: Task) => {
     tasks.value[taskIndex].isFocused = newFocusState;
 
     if (newFocusState) {
-      // Dispatch event to add to TodaysFocus
+      // Modified: Added sourceComponent to event detail
       window.dispatchEvent(
         new CustomEvent("task-focused", {
           detail: {
             taskId: task.id,
             text: task.text,
             isSubtask: false,
+            sourceComponent: "Weekly Focus", // Added: Identify source component
           },
         })
       );
@@ -875,7 +876,7 @@ const toggleSubtaskFocus = (task: Task, subtask: Subtask) => {
       tasks.value[taskIndex].subtasks[subtaskIndex].isFocused = newFocusState;
 
       if (newFocusState) {
-        // Dispatch event to add to TodaysFocus
+        // Modified: Added sourceComponent to event detail
         window.dispatchEvent(
           new CustomEvent("task-focused", {
             detail: {
@@ -884,6 +885,7 @@ const toggleSubtaskFocus = (task: Task, subtask: Subtask) => {
               text: subtask.text,
               isSubtask: true,
               parentTaskText: task.text,
+              sourceComponent: "Weekly Focus", // Added: Identify source component
             },
           })
         );

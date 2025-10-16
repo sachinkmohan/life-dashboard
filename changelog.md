@@ -526,86 +526,81 @@ interface Task {
 - Added consistent grey border to progress bar to make empty portion always visible
 - Progress bar now has uniform styling regardless of completion status
 
-## [Unreleased]
-
-### Added
-
-- Enhanced task creation with comma-separated input parsing
-  - First value becomes the main task title
-  - Subsequent comma-separated values automatically become subtasks
-  - Automatic whitespace trimming for clean task and subtask names
-  - Empty values are filtered out to prevent blank entries
-- **NEW**: Numbered list parsing and automatic sorting
-  - Detects numbered items in format "1. Task name"
-  - Automatically sorts tasks and subtasks by their numbers
-  - Supports mixed numbered and non-numbered items
-  - Non-numbered items are placed after numbered ones
-- **ENHANCED**: Advanced task sorting with numbered priority
-  - Numbered tasks (1. 2. 3. etc.) always appear at the top in ascending numerical order
-  - Non-numbered tasks maintain their original creation order
-  - Completed tasks are sorted separately but maintain the same priority rules
-- **Dark Mode Feature**: Added a dark mode toggle functionality
-  - Fixed dark mode toggle button positioned in the top right corner
-  - Button shows sun icon in dark mode and moon icon in light mode
-  - Dark mode applies dark background (#121212) and white text to the body element
-  - Smooth transitions between light and dark modes
-  - Automatic cleanup of dark mode class on component unmount
-  - Vue components remain untouched as requested
-  - App.vue layout preserved without any changes
-- Added a subtle info text below the "Add subtask" input field to explain the number range expansion logic and subtask splitting.
-- Added Vuetify 3 date picker component to WeekNumber.vue displaying the current month with today's date highlighted.
-- Added left and right navigation arrows to switch between previous and next months.
-- Calendar is displayed in a card below the week progress bar with month/year header.
-- Reduced calendar size to 75% by adding max-width constraint and setting date-picker width to 300px.
-- Calendar is centered within its container for better visual hierarchy.
-
-### Changed
-
-- Modified `addTask()` function to parse comma-separated input
-- Subtasks are now automatically expanded when created from comma-separated input
-- **Enhanced**: Added intelligent parsing for numbered lists with automatic sorting
-- **IMPROVED**: Enhanced `sortedTasks` computed property for better task organization
-  - Added `extractTaskNumber()` helper function for reliable number extraction
-  - Implemented priority-based sorting: numbered tasks first, then non-numbered
-  - Preserved original order for non-numbered tasks within completion groups
+## [Unreleased] - 2024-01-XX
 
 ### Fixed
 
-- **CRITICAL**: Fixed task title editing persistence issue
-  - Task title changes now properly save to localStorage and persist after page reload
-  - Updated `saveEdit()` function to correctly update the reactive tasks array
-  - Ensured proper reactivity triggers for localStorage synchronization
-- **TypeScript Checkbox Error Fix**: Resolved TypeScript compilation error in WeeklyProgressTasks component
-  - Fixed `$event` type error where v-checkbox emits `boolean | null` but function expected only `boolean`
-  - Updated `updateSubtaskDone` function signature to accept `boolean | null` parameter
-  - Added null coalescing operator (`??`) to convert null values to false
-  - Used nullish coalescing in template to handle null case: `$event ?? false`
-  - Ensured type safety while maintaining existing checkbox functionality
+- **OtherTasks.vue**: Fixed syntax error in script section caused by corrupted code merge
+- **TodaysFocus.vue**: Fixed syntax error in script section caused by corrupted code merge
+
+### Added
+
+- **TodaysFocus.vue Component**: New component to display tasks and subtasks that are focused for today
+
+  - Displays focused items with completion checkboxes
+  - Shows parent task name for focused subtasks
+  - Remove from focus button (using `mdi-close` icon, not delete)
+  - Clear all focused items functionality
+  - Empty state with bullseye icon and instructions
+  - Items sync completion status with source components
+  - Data persists in localStorage as `todaysFocusItems`
+  - **Source component badges**: Each focused item displays a colored badge/chip showing which component it came from
+    - Blue badge with calendar icon for "Daily Tasks"
+    - Purple badge with clipboard icon for "Other Tasks"
+    - Green badge with target icon for "Weekly Focus"
+  - Items maintain insertion order (no grouping by source)
+
+- **WeeklyProgressTasks.vue - Focus Feature**:
+
+  - Added bullseye icon button (`mdi-bullseye`) to main tasks
+  - Added bullseye icon button to subtasks
+  - Focus state tracking for both tasks and subtasks (`isFocused` property)
+  - Active focus indicated by deep-orange color on bullseye icon
+  - Includes `sourceComponent: "Weekly Focus"` in focus events
+
+- **DailyTasks.vue - Focus Feature**:
+
+  - Added bullseye icon button (`mdi-bullseye`) to each task
+  - Focus state tracking (`isFocused` property)
+  - Active focus indicated by deep-orange color on bullseye icon
+  - Includes `sourceComponent: "Daily Tasks"` in focus events
+  - Event listeners for cross-component communication with TodaysFocus
+  - Bi-directional sync of completion status
+
+- **OtherTasks.vue - Focus Feature**:
+
+  - Added bullseye icon button (`mdi-bullseye`) to each task
+  - Focus state tracking (`isFocused` property)
+  - Active focus indicated by deep-orange color on bullseye icon
+  - Includes `sourceComponent: "Other Tasks"` in focus events
+  - Event listeners for cross-component communication with TodaysFocus
+  - Bi-directional sync of completion status
+
+- **App.vue Layout**:
+  - Added new full-width row for TodaysFocus component
+  - Imported TodaysFocus component
 
 ### Technical Details
 
-- Added input parsing logic that splits on commas and creates subtask objects
-- Maintained existing UUID generation for both main tasks and subtasks
-- Preserved existing task structure and properties
-- **NEW**: Added `parseNumberedItem()` helper function to extract numbers and text
-- **NEW**: Added sorting logic that respects numerical order when numbers are present
-- **NEW**: Handles mixed content (some numbered, some not) gracefully
-- **ENHANCED**: Advanced sorting algorithm that maintains task hierarchy and completion status
-- **FIXED**: Improved reactivity in task editing to ensure proper localStorage persistence
-- Modified `updateSubtaskDone` function to handle `boolean | null` input type
-- Added proper null handling with fallback to `false` for consistent behavior
-- Updated template binding to use nullish coalescing operator
-- Maintained existing reactivity and localStorage persistence functionality
+- Focus state managed through `isFocused` boolean property on Task and Subtask interfaces
+- Cross-component communication via browser CustomEvents (window.dispatchEvent):
+  - `task-focused`: Dispatched when task/subtask is focused (includes `sourceComponent` field)
+  - `task-unfocused`: Dispatched when task/subtask is unfocused
+  - `remove-from-focus`: Received from TodaysFocus to update focus state
+  - `sync-focus-done`: Received from TodaysFocus to sync completion status
+- LocalStorage keys used: `todaysFocusItems` for TodaysFocus data
+- Focus removal does NOT delete tasks from source components, only removes from focus list
+- Bi-directional sync of completion status between TodaysFocus and all source components
+- Source component identification through `sourceComponent` string field in events
 
-### Examples
+### User Experience
 
-- Tasks with numbers "3. Task C", "1. Task A", "2. Task B" will display as: "1. Task A", "2. Task B", "3. Task C"
-- Mixed tasks "Task X", "2. Priority", "Task Y", "1. Urgent" will display as: "1. Urgent", "2. Priority", "Task X", "Task Y"
-- Completed tasks maintain the same sorting rules but appear after incomplete tasks
-- Edited task titles now persist correctly after page refresh
-
-### Subtask Number Range Expansion Details
-
-- Number range expansion in the "Add subtask" field now happens only after 2 seconds of inactivity.
-- Expansion is limited to a maximum of 10 numbers.
-- Expansion logic is applied only to the subtask input field, not elsewhere.
+- Users can click bullseye icon on any task (or subtask in Weekly Focus) to add to Today's Focus
+- Bullseye icon turns deep-orange when item is focused
+- Clicking bullseye again removes from focus
+- TodaysFocus shows all focused items in insertion order with colored source badges
+- Each item displays its source component (Daily Tasks, Other Tasks, or Weekly Focus)
+- Subtasks also show their parent task name
+- Checking items as done in either component syncs to both
+- Clear visual distinction between focused and non-focused items
+- "Clear All" button to quickly unfocus all items
