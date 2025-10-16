@@ -637,7 +637,7 @@ interface Task {
   - `dragleave`: Hides drop zone indicator
   - `drop`: Reorders array and updates state
   - `dragend`: Cleans up drag state
-- **State Management**: 
+- **State Management**:
   - `draggingIndex`: Tracks currently dragged item
   - `dragOverIndex`: Tracks current drop target
   - Array reordering using splice operations

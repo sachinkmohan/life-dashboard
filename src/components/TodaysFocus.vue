@@ -39,7 +39,7 @@
               <v-card
                 variant="outlined"
                 class="focus-item-card"
-                :class="{ 'dragging': draggingIndex === index }"
+                :class="{ dragging: draggingIndex === index }"
               >
                 <v-list density="compact">
                   <v-list-item class="py-2 px-4">
@@ -341,7 +341,7 @@ const handleDragLeave = () => {
 // Added: Handle drop event and reorder items
 const handleDrop = (event: DragEvent, dropIndex: number) => {
   event.preventDefault();
-  
+
   if (draggingIndex.value === null || draggingIndex.value === dropIndex) {
     return;
   }
@@ -349,16 +349,16 @@ const handleDrop = (event: DragEvent, dropIndex: number) => {
   // Reorder the array
   const draggedItem = focusedItems.value[draggingIndex.value];
   const newItems = [...focusedItems.value];
-  
+
   // Remove dragged item
   newItems.splice(draggingIndex.value, 1);
-  
+
   // Insert at new position
   newItems.splice(dropIndex, 0, draggedItem);
-  
+
   // Update the reactive array
   focusedItems.value = newItems;
-  
+
   // Reset drag state
   dragOverIndex.value = null;
 };
