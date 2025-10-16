@@ -173,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, onBeforeUnmount, onMounted, computed } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 // Modified: Add isFocused property to Task interface
@@ -262,6 +262,17 @@ onMounted(() => {
   );
 });
 
+onBeforeUnmount(() => {
+  window.removeEventListener(
+    "remove-from-focus",
+    handleRemoveFromFocus as EventListener
+  );
+  window.removeEventListener(
+    "sync-focus-done",
+    handleSyncFocusDone as EventListener
+  );
+});
+
 // Added: Handle when item is removed from TodaysFocus
 const handleRemoveFromFocus = (event: CustomEvent) => {
   const { taskId } = event.detail;
@@ -278,7 +289,12 @@ const handleSyncFocusDone = (event: CustomEvent) => {
 
   const taskIndex = tasks.value.findIndex((t) => t.id === taskId);
   if (taskIndex !== -1) {
+    const wasDone = tasks.value[taskIndex].done;
     tasks.value[taskIndex].done = done;
+    // Increment count if transitioning from not done to done
+    if (done && !wasDone) {
+      tasks.value[taskIndex].count = (tasks.value[taskIndex].count || 0) + 1;
+    }
   }
 };
 

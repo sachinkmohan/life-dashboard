@@ -171,7 +171,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, watch, onMounted, computed, onUnmounted } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 // Modified: Add isFocused property to Task interface
@@ -314,6 +314,17 @@ onMounted(() => {
     handleRemoveFromFocus as EventListener
   );
   window.addEventListener(
+    "sync-focus-done",
+    handleSyncFocusDone as EventListener
+  );
+});
+
+onUnmounted(() => {
+  window.removeEventListener(
+    "remove-from-focus",
+    handleRemoveFromFocus as EventListener
+  );
+  window.removeEventListener(
     "sync-focus-done",
     handleSyncFocusDone as EventListener
   );

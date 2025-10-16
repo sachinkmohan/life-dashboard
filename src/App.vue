@@ -47,8 +47,9 @@ onUnmounted(() => {
   <v-container fluid>
     <v-row>
       <v-col cols="4">
-        <WeekNumber />
+        <TodaysFocus />
       </v-col>
+
       <v-col cols="4">
         <DailyTasks />
       </v-col>
@@ -58,18 +59,18 @@ onUnmounted(() => {
     </v-row>
     <v-row>
       <v-col cols="4">
-        <CustomCountdown />
-      </v-col>
-      <v-col cols="4">
         <WeeklyProgressTasks />
       </v-col>
       <v-col cols="4">
-        <ReadingTracker />
+        <WeekNumber />
+      </v-col>
+      <v-col cols="4">
+        <CustomCountdown />
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="12">
-        <TodaysFocus />
+      <v-col cols="4">
+        <ReadingTracker />
       </v-col>
     </v-row>
   </v-container>

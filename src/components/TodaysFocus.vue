@@ -148,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 
 // Modified: Added sourceComponent field to track which component the item came from
 interface FocusedItem {
@@ -169,7 +169,15 @@ const focusedItems = ref<FocusedItem[]>([]);
 onMounted(() => {
   const saved = localStorage.getItem("todaysFocusItems");
   if (saved) {
-    focusedItems.value = JSON.parse(saved);
+    try {
+      focusedItems.value = JSON.parse(saved);
+    } catch (error) {
+      console.error(
+        "Failed to parse todaysFocusItems from localStorage:",
+        error
+      );
+      localStorage.removeItem("todaysFocusItems");
+    }
   }
 
   // Listen for custom events from all task components
@@ -180,8 +188,26 @@ onMounted(() => {
   );
 });
 
+// Clean up event listeners on unmount
+onUnmounted(() => {
+  window.removeEventListener(
+    "task-focused",
+    handleTaskFocused as EventListener
+  );
+  window.removeEventListener(
+    "task-unfocused",
+    handleTaskUnfocused as EventListener
+  );
+});
+
 // Modified: Extract sourceComponent from event detail
 const handleTaskFocused = (event: CustomEvent) => {
+  // Validate event detail structure
+  if (!event.detail || typeof event.detail !== "object") {
+    console.warn("Invalid task-focused event: missing or invalid detail");
+    return;
+  }
+
   const {
     taskId,
     subtaskId,
@@ -190,6 +216,12 @@ const handleTaskFocused = (event: CustomEvent) => {
     parentTaskText,
     sourceComponent,
   } = event.detail;
+
+  // Validate required fields
+  if (!taskId || !text || !sourceComponent) {
+    console.warn("Invalid task-focused event: missing required fields");
+    return;
+  }
 
   // Check if already in focus to prevent duplicates
   const exists = focusedItems.value.some(
