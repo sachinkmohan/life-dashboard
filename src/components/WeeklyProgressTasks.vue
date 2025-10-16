@@ -772,12 +772,12 @@ onMounted(() => {
     }));
   }
 
-  // Added: Listen for events from TodaysFocus component
-  window.addEventListener(
+  // Modified: Use globalThis instead of window for event listeners
+  globalThis.addEventListener(
     "remove-from-focus",
     handleRemoveFromFocus as EventListener
   );
-  window.addEventListener(
+  globalThis.addEventListener(
     "sync-focus-done",
     handleSyncFocusDone as EventListener
   );
@@ -841,20 +841,22 @@ const toggleTaskFocus = (task: Task) => {
     tasks.value[taskIndex].isFocused = newFocusState;
 
     if (newFocusState) {
+      // Modified: Use globalThis instead of window
       // Modified: Added sourceComponent to event detail
-      window.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("task-focused", {
           detail: {
             taskId: task.id,
             text: task.text,
             isSubtask: false,
-            sourceComponent: "Weekly Focus", // Added: Identify source component
+            sourceComponent: "Weekly Focus",
           },
         })
       );
     } else {
+      // Modified: Use globalThis instead of window
       // Dispatch event to remove from TodaysFocus
-      window.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("task-unfocused", {
           detail: { taskId: task.id },
         })
@@ -876,8 +878,9 @@ const toggleSubtaskFocus = (task: Task, subtask: Subtask) => {
       tasks.value[taskIndex].subtasks[subtaskIndex].isFocused = newFocusState;
 
       if (newFocusState) {
+        // Modified: Use globalThis instead of window
         // Modified: Added sourceComponent to event detail
-        window.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("task-focused", {
             detail: {
               taskId: task.id,
@@ -885,13 +888,14 @@ const toggleSubtaskFocus = (task: Task, subtask: Subtask) => {
               text: subtask.text,
               isSubtask: true,
               parentTaskText: task.text,
-              sourceComponent: "Weekly Focus", // Added: Identify source component
+              sourceComponent: "Weekly Focus",
             },
           })
         );
       } else {
+        // Modified: Use globalThis instead of window
         // Dispatch event to remove from TodaysFocus
-        window.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("task-unfocused", {
             detail: { taskId: task.id, subtaskId: subtask.id },
           })

@@ -308,23 +308,24 @@ onMounted(() => {
   loadWeeklyStats();
   checkAndResetWeek();
 
-  // Added: Listen for events from TodaysFocus component
-  window.addEventListener(
+  // Modified: Use globalThis instead of window for event listeners
+  globalThis.addEventListener(
     "remove-from-focus",
     handleRemoveFromFocus as EventListener
   );
-  window.addEventListener(
+  globalThis.addEventListener(
     "sync-focus-done",
     handleSyncFocusDone as EventListener
   );
 });
 
 onUnmounted(() => {
-  window.removeEventListener(
+  // Modified: Use globalThis instead of window for event listeners
+  globalThis.removeEventListener(
     "remove-from-focus",
     handleRemoveFromFocus as EventListener
   );
-  window.removeEventListener(
+  globalThis.removeEventListener(
     "sync-focus-done",
     handleSyncFocusDone as EventListener
   );
@@ -358,20 +359,22 @@ const toggleTaskFocus = (task: Task) => {
     tasks.value[taskIndex].isFocused = newFocusState;
 
     if (newFocusState) {
+      // Modified: Use globalThis instead of window
       // Dispatch event to add to TodaysFocus
-      window.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("task-focused", {
           detail: {
             taskId: task.id,
             text: task.text,
             isSubtask: false,
-            sourceComponent: "Other Tasks", // Added: Identify source component
+            sourceComponent: "Other Tasks",
           },
         })
       );
     } else {
+      // Modified: Use globalThis instead of window
       // Dispatch event to remove from TodaysFocus
-      window.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("task-unfocused", {
           detail: { taskId: task.id },
         })

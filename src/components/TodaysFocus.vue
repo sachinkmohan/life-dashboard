@@ -181,8 +181,11 @@ onMounted(() => {
   }
 
   // Listen for custom events from all task components
-  window.addEventListener("task-focused", handleTaskFocused as EventListener);
-  window.addEventListener(
+  globalThis.addEventListener(
+    "task-focused",
+    handleTaskFocused as EventListener
+  );
+  globalThis.addEventListener(
     "task-unfocused",
     handleTaskUnfocused as EventListener
   );
@@ -190,11 +193,11 @@ onMounted(() => {
 
 // Clean up event listeners on unmount
 onUnmounted(() => {
-  window.removeEventListener(
+  globalThis.removeEventListener(
     "task-focused",
     handleTaskFocused as EventListener
   );
-  window.removeEventListener(
+  globalThis.removeEventListener(
     "task-unfocused",
     handleTaskUnfocused as EventListener
   );
@@ -255,8 +258,9 @@ const handleTaskUnfocused = (event: CustomEvent) => {
 
 // Remove item from today's focus (does NOT delete from source component)
 const removeFromFocus = (item: FocusedItem) => {
+  // Modified: Use globalThis instead of window
   // Dispatch event to notify source component to update its focus state
-  window.dispatchEvent(
+  globalThis.dispatchEvent(
     new CustomEvent("remove-from-focus", {
       detail: { taskId: item.taskId, subtaskId: item.subtaskId },
     })
@@ -265,12 +269,12 @@ const removeFromFocus = (item: FocusedItem) => {
   // Remove from local array
   focusedItems.value = focusedItems.value.filter((i) => i.id !== item.id);
 };
-
 // Clear all focused items
 const clearAllFocus = () => {
+  // Modified: Use globalThis instead of window
   // Notify source components for each item
   focusedItems.value.forEach((item) => {
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new CustomEvent("remove-from-focus", {
         detail: { taskId: item.taskId, subtaskId: item.subtaskId },
       })
@@ -280,15 +284,15 @@ const clearAllFocus = () => {
   // Clear local array
   focusedItems.value = [];
 };
-
 // Toggle done status for a focused item
 const toggleItemDone = (item: FocusedItem, done: boolean) => {
   const itemIndex = focusedItems.value.findIndex((i) => i.id === item.id);
   if (itemIndex !== -1) {
     focusedItems.value[itemIndex].done = done;
 
+    // Modified: Use globalThis instead of window
     // Sync with source component
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new CustomEvent("sync-focus-done", {
         detail: {
           taskId: item.taskId,
