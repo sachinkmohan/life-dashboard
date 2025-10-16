@@ -6,6 +6,7 @@ import CustomCountdown from "./components/CustomCountdown.vue";
 import OtherTasks from "./components/OtherTasks.vue";
 import WeeklyProgressTasks from "./components/WeeklyProgressTasks.vue";
 import ReadingTracker from "./components/ReadingTracker.vue";
+import TodaysFocus from "./components/TodaysFocus.vue";
 
 const isDarkMode = ref(false);
 
@@ -46,8 +47,9 @@ onUnmounted(() => {
   <v-container fluid>
     <v-row>
       <v-col cols="4">
-        <WeekNumber />
+        <TodaysFocus />
       </v-col>
+
       <v-col cols="4">
         <DailyTasks />
       </v-col>
@@ -57,11 +59,16 @@ onUnmounted(() => {
     </v-row>
     <v-row>
       <v-col cols="4">
-        <CustomCountdown />
-      </v-col>
-      <v-col cols="4">
         <WeeklyProgressTasks />
       </v-col>
+      <v-col cols="4">
+        <WeekNumber />
+      </v-col>
+      <v-col cols="4">
+        <CustomCountdown />
+      </v-col>
+    </v-row>
+    <v-row>
       <v-col cols="4">
         <ReadingTracker />
       </v-col>

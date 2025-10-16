@@ -124,9 +124,18 @@
                         </div>
                         <!-- Modified: Added date picker button to the action buttons group -->
                         <div class="d-flex" style="gap: 4px">
-                          <!-- Modified: Grouped action buttons with consistent styling and spacing -->
+                          <!-- Modified: Grouped action buttons with bullseye icon added -->
                           <v-btn-group variant="outlined" density="compact">
-                            <!-- Added: Date picker toggle button -->
+                            <!-- Added: Bullseye button to toggle task focus -->
+                            <v-btn
+                              size="small"
+                              @click="toggleTaskFocus(task)"
+                              :color="
+                                task.isFocused ? 'deep-orange' : 'grey-darken-1'
+                              "
+                              icon="mdi-bullseye"
+                              min-width="32"
+                            />
                             <v-btn
                               size="small"
                               @click="toggleDatePicker(task)"
@@ -405,6 +414,18 @@
                                   density="comfortable"
                                   divided
                                 >
+                                  <!-- Added: Bullseye button for subtask focus -->
+                                  <v-btn
+                                    size="x-small"
+                                    @click="toggleSubtaskFocus(task, subtask)"
+                                    :color="
+                                      subtask.isFocused
+                                        ? 'deep-orange'
+                                        : 'grey-darken-1'
+                                    "
+                                    icon="mdi-bullseye"
+                                    min-width="32"
+                                  />
                                   <v-btn
                                     v-if="editingSubtaskId !== subtask.id"
                                     size="x-small"
@@ -462,26 +483,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, nextTick } from "vue";
+import { ref, onMounted, computed, nextTick } from "vue";
 import { v4 as uuidv4 } from "uuid";
+
+interface Task {
+  id: string;
+  text: string;
+  done: boolean;
+  deadline?: string;
+  subtasks?: Subtask[];
+  subtasksCollapsed?: boolean;
+  newSubtaskText?: string;
+  showSubtaskInput?: boolean;
+  showDatePicker?: boolean;
+  isFocused?: boolean; // Added: Track if main task is in today's focus
+}
 
 interface Subtask {
   id: string;
   text: string;
   done: boolean;
-}
-
-// Modified: Added deadline field to Task interface
-interface Task {
-  id: string;
-  text: string;
-  done: boolean;
-  deadline?: string; // Added: ISO date string for deadline
-  subtasks?: Subtask[];
-  subtasksCollapsed?: boolean; // false = expanded by default
-  newSubtaskText?: string; // for input binding
-  showSubtaskInput?: boolean; // Added: control subtask input visibility
-  showDatePicker?: boolean; // Added: control date picker visibility
+  isFocused?: boolean; // Added: Track if subtask is in today's focus
 }
 
 const newTask = ref("");
@@ -746,19 +768,142 @@ onMounted(() => {
       subtasks: task.subtasks || [],
       showSubtaskInput: false,
       showDatePicker: false, // Added: Initialize date picker state for existing tasks
+      isFocused: task.isFocused ?? false, // Added: Initialize focus state
     }));
   }
+
+  // Modified: Use globalThis instead of window for event listeners
+  globalThis.addEventListener(
+    "remove-from-focus",
+    handleRemoveFromFocus as EventListener
+  );
+  globalThis.addEventListener(
+    "sync-focus-done",
+    handleSyncFocusDone as EventListener
+  );
 });
 
-// Watch for task changes and update localStorage
-watch(
-  tasks,
-  (newTasks) => {
-    // Changed localStorage key from "otherTasks" to "weeklyProgressTasks"
-    localStorage.setItem("weeklyProgressTasks", JSON.stringify(newTasks)); // <-- changed
-  },
-  { deep: true }
-);
+// Added: Handle when item is removed from TodaysFocus
+const handleRemoveFromFocus = (event: CustomEvent) => {
+  const { taskId, subtaskId } = event.detail;
+
+  const taskIndex = tasks.value.findIndex((t) => t.id === taskId);
+  if (taskIndex !== -1) {
+    if (subtaskId) {
+      // Unfocus subtask
+      const subtaskIndex = tasks.value[taskIndex].subtasks?.findIndex(
+        (s) => s.id === subtaskId
+      );
+      if (
+        subtaskIndex !== undefined &&
+        subtaskIndex !== -1 &&
+        tasks.value[taskIndex].subtasks
+      ) {
+        tasks.value[taskIndex].subtasks[subtaskIndex].isFocused = false;
+      }
+    } else {
+      // Unfocus main task
+      tasks.value[taskIndex].isFocused = false;
+    }
+  }
+};
+
+// Added: Sync done status from TodaysFocus back to this component
+const handleSyncFocusDone = (event: CustomEvent) => {
+  const { taskId, subtaskId, done } = event.detail;
+
+  const taskIndex = tasks.value.findIndex((t) => t.id === taskId);
+  if (taskIndex !== -1) {
+    if (subtaskId) {
+      // Sync subtask done status
+      const subtaskIndex = tasks.value[taskIndex].subtasks?.findIndex(
+        (s) => s.id === subtaskId
+      );
+      if (
+        subtaskIndex !== undefined &&
+        subtaskIndex !== -1 &&
+        tasks.value[taskIndex].subtasks
+      ) {
+        tasks.value[taskIndex].subtasks[subtaskIndex].done = done;
+      }
+    } else {
+      // Sync main task done status
+      tasks.value[taskIndex].done = done;
+    }
+  }
+};
+
+// Added: Toggle focus state for main task
+const toggleTaskFocus = (task: Task) => {
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1) {
+    const newFocusState = !tasks.value[taskIndex].isFocused;
+    tasks.value[taskIndex].isFocused = newFocusState;
+
+    if (newFocusState) {
+      // Modified: Use globalThis instead of window
+      // Modified: Added sourceComponent to event detail
+      globalThis.dispatchEvent(
+        new CustomEvent("task-focused", {
+          detail: {
+            taskId: task.id,
+            text: task.text,
+            isSubtask: false,
+            sourceComponent: "Weekly Focus",
+          },
+        })
+      );
+    } else {
+      // Modified: Use globalThis instead of window
+      // Dispatch event to remove from TodaysFocus
+      globalThis.dispatchEvent(
+        new CustomEvent("task-unfocused", {
+          detail: { taskId: task.id },
+        })
+      );
+    }
+  }
+};
+
+// Added: Toggle focus state for subtask
+const toggleSubtaskFocus = (task: Task, subtask: Subtask) => {
+  const taskIndex = tasks.value.findIndex((t) => t.id === task.id);
+  if (taskIndex !== -1 && tasks.value[taskIndex].subtasks) {
+    const subtaskIndex = tasks.value[taskIndex].subtasks.findIndex(
+      (s) => s.id === subtask.id
+    );
+    if (subtaskIndex !== -1) {
+      const newFocusState =
+        !tasks.value[taskIndex].subtasks[subtaskIndex].isFocused;
+      tasks.value[taskIndex].subtasks[subtaskIndex].isFocused = newFocusState;
+
+      if (newFocusState) {
+        // Modified: Use globalThis instead of window
+        // Modified: Added sourceComponent to event detail
+        globalThis.dispatchEvent(
+          new CustomEvent("task-focused", {
+            detail: {
+              taskId: task.id,
+              subtaskId: subtask.id,
+              text: subtask.text,
+              isSubtask: true,
+              parentTaskText: task.text,
+              sourceComponent: "Weekly Focus",
+            },
+          })
+        );
+      } else {
+        // Modified: Use globalThis instead of window
+        // Dispatch event to remove from TodaysFocus
+        globalThis.dispatchEvent(
+          new CustomEvent("task-unfocused", {
+            detail: { taskId: task.id, subtaskId: subtask.id },
+          })
+        );
+      }
+    }
+  }
+};
 
 // Modified: Replace number-based sorting with deadline-based sorting
 const sortedTasks = computed(() => {
@@ -1096,5 +1241,23 @@ const overallProgress = computed(() => {
 /* Modified: Ensure date picker is properly centered and compact */
 .date-picker-card .v-date-picker {
   margin: 0 auto;
+}
+
+/* Added: Focus ring styles for tasks and subtasks */
+.task-block.is-focused {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.task-title-container.is-focused {
+  /* Added: Distinctive style for focused task title */
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.subtask-title.is-focused {
+  /* Added: Distinctive style for focused subtask title */
+  color: #1976d2;
+  font-weight: 500;
 }
 </style>
