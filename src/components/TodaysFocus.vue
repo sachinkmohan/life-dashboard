@@ -21,11 +21,38 @@
         <v-col cols="12">
           <!-- Display focused items if any exist -->
           <template v-if="focusedItems.length > 0">
-            <div v-for="item in focusedItems" :key="item.id" class="mb-3">
-              <v-card variant="outlined" class="focus-item-card">
+            <!-- Modified: Added draggable functionality to each task card -->
+            <div
+              v-for="(item, index) in focusedItems"
+              :key="item.id"
+              class="mb-3"
+              draggable="true"
+              @dragstart="handleDragStart($event, index)"
+              @dragover="handleDragOver($event, index)"
+              @drop="handleDrop($event, index)"
+              @dragend="handleDragEnd"
+              @dragenter="handleDragEnter(index)"
+              @dragleave="handleDragLeave"
+              :class="{ 'drag-over': dragOverIndex === index }"
+            >
+              <!-- Modified: Added drag handle icon and styling for better UX -->
+              <v-card
+                variant="outlined"
+                class="focus-item-card"
+                :class="{ 'dragging': draggingIndex === index }"
+              >
                 <v-list density="compact">
                   <v-list-item class="py-2 px-4">
+                    <!-- Added: Drag handle icon in prepend slot -->
                     <template #prepend>
+                      <!-- Added: Drag handle icon for visual feedback -->
+                      <v-icon
+                        class="drag-handle mr-2"
+                        size="small"
+                        color="grey-darken-1"
+                      >
+                        mdi-drag-vertical
+                      </v-icon>
                       <!-- Checkbox to mark item as done -->
                       <v-checkbox
                         :model-value="item.done"
@@ -277,6 +304,70 @@ const getSourceIcon = (sourceComponent: string) => {
       return "mdi-star";
   }
 };
+
+// Added: State variables for drag and drop functionality
+const draggingIndex = ref<number | null>(null);
+const dragOverIndex = ref<number | null>(null);
+
+// Added: Handle drag start event
+const handleDragStart = (event: DragEvent, index: number) => {
+  draggingIndex.value = index;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", index.toString());
+  }
+};
+
+// Added: Handle drag over event (required to allow drop)
+const handleDragOver = (event: DragEvent, index: number) => {
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+  }
+};
+
+// Added: Handle drag enter event for visual feedback
+const handleDragEnter = (index: number) => {
+  if (draggingIndex.value !== null && draggingIndex.value !== index) {
+    dragOverIndex.value = index;
+  }
+};
+
+// Added: Handle drag leave event
+const handleDragLeave = () => {
+  dragOverIndex.value = null;
+};
+
+// Added: Handle drop event and reorder items
+const handleDrop = (event: DragEvent, dropIndex: number) => {
+  event.preventDefault();
+  
+  if (draggingIndex.value === null || draggingIndex.value === dropIndex) {
+    return;
+  }
+
+  // Reorder the array
+  const draggedItem = focusedItems.value[draggingIndex.value];
+  const newItems = [...focusedItems.value];
+  
+  // Remove dragged item
+  newItems.splice(draggingIndex.value, 1);
+  
+  // Insert at new position
+  newItems.splice(dropIndex, 0, draggedItem);
+  
+  // Update the reactive array
+  focusedItems.value = newItems;
+  
+  // Reset drag state
+  dragOverIndex.value = null;
+};
+
+// Added: Handle drag end event to reset state
+const handleDragEnd = () => {
+  draggingIndex.value = null;
+  dragOverIndex.value = null;
+};
 </script>
 
 <style scoped>
@@ -286,10 +377,45 @@ const getSourceIcon = (sourceComponent: string) => {
   border-radius: 8px;
   background: linear-gradient(135deg, #f5f9ff 0%, #ffffff 100%);
   transition: all 0.2s;
+  /* Added: Smooth transition for drag effects */
+  cursor: move;
 }
 
 .focus-item-card:hover {
   box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
   transform: translateY(-2px);
+}
+
+/* Added: Drag handle styling */
+.drag-handle {
+  cursor: grab;
+  transition: color 0.2s;
+}
+
+.drag-handle:hover {
+  color: #1976d2 !important;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Added: Visual feedback during drag */
+.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  cursor: grabbing !important;
+}
+
+/* Added: Drop zone indicator */
+.drag-over {
+  border-top: 3px solid #1976d2;
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+/* Added: Smooth transitions for drag effects */
+[draggable="true"] {
+  transition: all 0.2s ease;
 }
 </style>

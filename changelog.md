@@ -604,3 +604,52 @@ interface Task {
 - Checking items as done in either component syncs to both
 - Clear visual distinction between focused and non-focused items
 - "Clear All" button to quickly unfocus all items
+
+### Added
+
+- **TodaysFocus.vue - Drag and Drop Reordering**:
+  - Full drag-and-drop functionality for reordering focused items
+  - Visual drag handle icon (`mdi-drag-vertical`) on each item
+  - Smooth drag animations and visual feedback
+  - Drop zone indicators showing where item will be placed
+  - Cursor changes (move → grab → grabbing) for better UX
+  - Opacity and scale effects on dragged items
+  - Border highlight on drop target
+  - Persistent order across browser sessions (auto-saved via localStorage)
+  - Items maintain custom order even after refresh or browser restart
+
+### Enhanced
+
+- **TodaysFocus.vue - User Experience**:
+  - Draggable cards with `draggable="true"` attribute
+  - Visual feedback during drag operations (opacity 0.5, scale 0.98)
+  - Drop zone visual indicator (top border on target position)
+  - Smooth transitions for all drag effects (0.2s ease)
+  - Drag handle icon changes color on hover for discoverability
+  - Entire card acts as drag surface with cursor feedback
+
+### Technical Implementation
+
+- **Drag and Drop API**: Native HTML5 drag-and-drop implementation
+  - `dragstart`: Captures dragged item index
+  - `dragover`: Prevents default and sets drop effect
+  - `dragenter`: Shows drop zone indicator
+  - `dragleave`: Hides drop zone indicator
+  - `drop`: Reorders array and updates state
+  - `dragend`: Cleans up drag state
+- **State Management**: 
+  - `draggingIndex`: Tracks currently dragged item
+  - `dragOverIndex`: Tracks current drop target
+  - Array reordering using splice operations
+  - Automatic localStorage sync via existing watcher
+- **CSS Transitions**: Smooth animations for drag, hover, and drop states
+- **Accessibility**: Visual drag handle provides clear affordance for reordering
+
+### User Experience
+
+- Drag any focused item by its drag handle or card surface
+- Visual feedback shows which item is being dragged
+- Drop zone indicator shows where item will be placed
+- Custom order persists across sessions
+- Smooth animations make interactions feel polished
+- Clear visual cues guide the drag-and-drop process
