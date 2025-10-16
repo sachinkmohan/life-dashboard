@@ -483,7 +483,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, nextTick } from "vue";
+import { ref, onMounted, computed, nextTick } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 interface Task {
@@ -903,30 +903,6 @@ const toggleSubtaskFocus = (task: Task, subtask: Subtask) => {
       }
     }
   }
-};
-
-// Added: Toggle focus state for all tasks and subtasks
-const toggleAllFocus = (focus: boolean) => {
-  tasks.value.forEach((task) => {
-    task.isFocused = focus;
-    if (task.subtasks) {
-      task.subtasks.forEach((subtask) => {
-        subtask.isFocused = focus;
-      });
-    }
-  });
-};
-
-// Added: Clear focus from all tasks and subtasks
-const clearFocus = () => {
-  tasks.value.forEach((task) => {
-    task.isFocused = false;
-    if (task.subtasks) {
-      task.subtasks.forEach((subtask) => {
-        subtask.isFocused = false;
-      });
-    }
-  });
 };
 
 // Modified: Replace number-based sorting with deadline-based sorting

@@ -28,7 +28,7 @@
               class="mb-3"
               draggable="true"
               @dragstart="handleDragStart($event, index)"
-              @dragover="handleDragOver($event, index)"
+              @dragover="handleDragOver($event)"
               @drop="handleDrop($event, index)"
               @dragend="handleDragEnd"
               @dragenter="handleDragEnter(index)"
@@ -354,8 +354,9 @@ const handleDragStart = (event: DragEvent, index: number) => {
   }
 };
 
+// Modified: Removed unused index parameter from handleDragOver
 // Added: Handle drag over event (required to allow drop)
-const handleDragOver = (event: DragEvent, index: number) => {
+const handleDragOver = (event: DragEvent) => {
   event.preventDefault();
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = "move";
@@ -443,7 +444,7 @@ const handleDragEnd = () => {
   cursor: grabbing !important;
 }
 
-/* Added: Drop zone indicator */
+/* Modified: Fixed corrupted drop zone indicator CSS */
 .drag-over {
   border-top: 3px solid #1976d2;
   margin-top: 8px;
