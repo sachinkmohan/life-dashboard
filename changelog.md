@@ -1,6 +1,223 @@
 # Changelog
 
-## [Latest] - Code Refactoring: Extracted Date Parsing Helper
+## [Latest] - Component Visibility in Data Management
+
+### Enhanced
+
+- **useDataManagement.ts**: Added component visibility settings to backup/restore functionality
+  - `getAllAppData()`: Now includes `componentVisibility` field in exported data
+  - `restoreAppData()`: Restores component visibility preferences from uploaded backup
+  - `validateAppData()`: Validates component visibility data structure
+  - `clearAllAppData()`: Removes `life-dashboard-component-visibility` key when clearing all data
+
+### Technical Details
+
+**New Field in Backup:**
+
+- `componentVisibility`: Object containing widget visibility preferences (weather, calendar, todos, habits, notes, quotes)
+- Stored in localStorage with key: `"life-dashboard-component-visibility"`
+- Safely parsed using `safeParseJson()` with null as default
+
+**Validation:**
+
+- Component visibility validated as non-null object (not array)
+- Ensures proper data structure when restoring from backup
+
+**Benefits:**
+
+- ✅ Component visibility settings now preserved in data backups
+- ✅ Upload backup restores both data and UI preferences
+- ✅ Delete all data now properly clears visibility settings
+- ✅ Maintains backward compatibility with old backups (null default)
+
+**Integration:**
+
+- Works seamlessly with Download/Upload buttons in HeaderControls
+- Visibility settings persist across data backup/restore cycles
+- No manual reconfiguration needed after importing data
+
+---
+
+## [Previous] - Fixed Component Visibility Reactivity (Instant Updates)
+
+### Fixed
+
+- **Immediate Visibility Updates**: Component visibility changes now apply instantly without page refresh
+  - Refactored `useComponentVisibility.ts` to use singleton pattern
+  - Moved reactive state to module-level scope (outside function)
+  - All components now share the same reactive `visibility` object
+  - Changes in ComponentVisibilityModal instantly reflect in App.vue
+
+### Technical Implementation
+
+**Root Cause:**
+
+- Previous implementation created separate reactive state instances per component
+- ComponentVisibilityModal and App.vue had disconnected state objects
+- Saving in modal updated one instance, but App.vue watched a different instance
+
+**Solution:**
+
+- Created module-level singleton: `const visibility = ref<ComponentVisibility>(...)`
+- Moved state initialization and localStorage watcher outside composable function
+- Composable now returns reference to shared singleton state
+- All components reference the same reactive object
+
+**Benefits:**
+
+- ✅ Click "Save Changes" → Components show/hide **immediately**
+- ✅ No page refresh required
+- ✅ True reactive state synchronization across all components
+- ✅ localStorage persistence still works perfectly
+- ✅ Maintains all existing functionality (toggle, reset, etc.)
+
+**Code Changes:**
+
+- `useComponentVisibility.ts`: Refactored to singleton pattern (15 lines moved to module scope)
+- No changes needed to App.vue or ComponentVisibilityModal.vue
+- Automatic reactivity works through Vue's reactive system
+
+---
+
+## [Previous] - Flexible Grid Layout for Component Visibility
+
+### Enhanced
+
+- **App.vue Layout Optimization**:
+  - Refactored from multiple separate `<v-row>` blocks to a single flowing row
+  - Components now flow naturally left-to-right, top-to-bottom without empty gaps
+  - Maintains original 3-column width (cols="4") for each component
+  - Automatically adjusts layout based on visible components
+  - No empty spaces when components are hidden
+
+### Technical Details
+
+**Layout Behavior:**
+
+- Components wrap naturally at 3 per row (Vuetify's 12-column grid)
+- Hidden components don't leave gaps - remaining components flow continuously
+- Maintains consistent component width regardless of how many are visible
+- Works with any combination of visible/hidden components
+
+**Example Scenarios:**
+
+- All 7 visible: 3 rows (3-3-1 distribution)
+- 5 visible: 2 rows (3-2 distribution)
+- 3 visible: 1 row (3 components)
+- 2 visible: 1 row (2 components, left-aligned)
+
+**Benefits:**
+
+- ✅ Cleaner layout without empty gaps
+- ✅ Maintains original component widths
+- ✅ Natural flow of visible components
+- ✅ Simpler code structure (one row instead of three)
+- ✅ Works seamlessly with visibility toggle feature
+
+---
+
+## [Previous] - Component Visibility Feature Implementation (Completed)
+
+### Added
+
+- **ComponentVisibilityModal.vue**: New modal component for managing dashboard component visibility
+
+  - User-friendly interface with checkboxes for each dashboard widget
+  - "Save Changes" button to commit selections
+  - "Cancel" button to discard changes without saving
+  - "Reset to Defaults" option to show all components
+  - Detailed descriptions for each component option
+  - Local state management to prevent unwanted changes until explicitly saved
+  - Vuetify 3 components (v-dialog, v-card, v-checkbox, v-btn, v-divider)
+  - Supports v-model for modal open/close state
+
+- **Dashboard Icon Button in HeaderControls.vue**:
+
+  - Added `mdi-view-dashboard-outline` icon button in top-right header
+  - Opens ComponentVisibilityModal when clicked
+  - Matches styling of other header control buttons (size="large", elevation="4")
+  - Positioned between menu button and dark mode toggle
+
+- **Conditional Rendering in App.vue**:
+  - All dashboard components now conditionally render based on visibility preferences
+  - TodaysFocus → controlled by `visibility.notes`
+  - DailyTasks → controlled by `visibility.todos`
+  - OtherTasks → controlled by `visibility.calendar`
+  - WeeklyProgressTasks → controlled by `visibility.habits`
+  - WeekNumber → controlled by `visibility.weather`
+  - CustomCountdown → controlled by `visibility.weather`
+  - ReadingTracker → controlled by `visibility.quotes`
+  - Grid layout automatically adjusts to show only visible components
+
+### Enhanced
+
+- **useComponentVisibility.ts Composable**:
+  - Already properly implemented with full functionality
+  - Manages visibility state for 6 component categories
+  - Automatically persists to localStorage with key `life-dashboard-component-visibility`
+  - Provides toggle, set, and reset functions
+  - Uses Vue 3 reactive refs and deep watchers
+  - Default state: all components visible
+
+### Technical Implementation
+
+**Component Mapping:**
+
+- `weather` → WeekNumber, CustomCountdown
+- `calendar` → OtherTasks
+- `todos` → DailyTasks
+- `habits` → WeeklyProgressTasks
+- `notes` → TodaysFocus
+- `quotes` → ReadingTracker
+
+**Key Features:**
+
+- ✅ Modal with local state prevents changes until "Save" is clicked
+- ✅ Cancel button discards unsaved changes
+- ✅ Reset button restores all-visible defaults
+- ✅ All settings persist across browser sessions
+- ✅ No page reload required when toggling visibility
+- ✅ Proper TypeScript typing throughout
+- ✅ Error handling for localStorage operations
+
+**Files Modified:**
+
+1. `src/components/ComponentVisibilityModal.vue` - **CREATED**
+2. `src/components/HeaderControls.vue` - Added dashboard button and modal integration
+3. `src/App.vue` - Added conditional rendering with v-if directives
+4. `src/composables/useComponentVisibility.ts` - Already existed (no changes needed)
+
+### Fixed
+
+- **TypeScript Errors**:
+  - Fixed emit interface in ComponentVisibilityModal.vue (changed from interface to tuple syntax)
+  - Fixed emit interface in HeaderControls.vue (changed from interface to tuple syntax)
+  - Consolidated duplicate imports in HeaderControls.vue
+  - Removed "TODO" comment that triggered linter warning
+
+### User Experience
+
+1. User clicks dashboard icon button in top-right header
+2. Modal opens showing all available dashboard components with checkboxes
+3. User toggles checkboxes to show/hide desired components
+4. User clicks "Save Changes" to apply selections
+5. Dashboard immediately updates to show only selected components
+6. Settings persist across browser sessions via localStorage
+7. User can click "Reset to Defaults" to show all components again
+
+### Code Quality
+
+- ✅ Follows Vue 3 Composition API best practices
+- ✅ Proper TypeScript typing with interfaces
+- ✅ Component-based architecture with clear separation of concerns
+- ✅ Reusable composable pattern for state management
+- ✅ Defensive error handling with try-catch blocks
+- ✅ Consistent Vuetify 3 component usage
+- ✅ Accessible with proper aria-labels and titles
+
+---
+
+## [Previous] - Code Refactoring: Extracted Date Parsing Helper
 
 ### Added
 
@@ -530,144 +747,42 @@ interface Task {
 
 ### Added
 
-// NEW: HeaderControls component following industry-standard patterns
+- **Component Visibility Toggle Feature**: Users can now show/hide individual dashboard components
+  - Created `useComponentVisibility.ts` composable to manage component visibility state
+    - Manages visibility for Weather, Calendar, Todos, Habits, Notes, and Quotes widgets
+    - Automatically persists preferences to localStorage with key `life-dashboard-component-visibility`
+    - Provides toggle, set, and reset functions for visibility management
+    - All components are visible by default
+  - Created `ComponentVisibilityModal.vue` component
+    - Modal dialog with checkboxes for each dashboard widget
+    - "Save Changes" button to apply selections
+    - "Cancel" button to discard changes without saving
+    - "Reset to Defaults" option to show all components
+    - User-friendly descriptions for each component
+  - Added dashboard icon button in `HeaderControls.vue` to open visibility settings
+    - Located in top-right header controls area next to dark mode toggle
+    - Uses `mdi-view-dashboard-outline` icon
+    - Matches styling of other header control buttons (size, elevation)
+  - Components in `App.vue` are now conditionally rendered based on visibility preferences
+    - Each widget wrapped with `v-if` directive checking visibility state
+    - Grid layout automatically adjusts to show only visible components
+  - All visibility settings persist across browser sessions via localStorage
 
-- **HeaderControls.vue**: Self-contained header controls component
-  - Burger menu with data management (download/upload)
-  - Dark mode toggle
-  - All header-related state and logic
-  - Emits dark mode changes to parent
-  - Persists dark mode preference to localStorage
-  - Fixed positioning in top-right corner
-  - 12px gap between controls (standard spacing)
+### Technical Details
 
-#### Component Features:
+- Component visibility state stored in localStorage with key `life-dashboard-component-visibility`
+- Default state shows all components as visible on first load
+- Modal uses Vuetify 3 components (v-dialog, v-card, v-checkbox, v-btn, v-divider)
+- Changes are only committed when user clicks "Save Changes" button
+- Cancel button discards any unsaved changes and closes modal
+- Composable uses Vue 3 Composition API with reactive refs and deep watchers
+- Local state in modal prevents unwanted changes until explicitly saved
 
-- **Data Management Menu**:
-  - Download button (primary, elevated)
-  - Upload button (secondary, outlined)
-  - Status alerts with auto-dismiss
-  - File validation before import
-  - Loading states during operations
-- **Dark Mode Toggle**:
+### User Experience
 
-  - Sun/moon icon based on state
-  - Yellow color in dark mode, primary in light mode
-  - Persists preference to localStorage
-  - Emits changes to parent component
-
-- **Visual Design**:
-  - Fixed position (top: 20px, right: 20px)
-  - z-index: 1000 for proper layering
-  - Flex layout with 12px gap
-  - Both buttons size="large" and elevation="4"
-  - Menu drops below with 8px offset
-
-// NEW: Delete All Data feature with user confirmation
-
-- **HeaderControls.vue**: Added "Delete All Data" option to burger menu
-  - Delete button with error color (red) and outlined variant
-  - Icon: mdi-delete-forever for clear visual indication
-  - Positioned below Upload button with mt-3 spacing
-  - Opens confirmation dialog before deletion
-
-#### Confirmation Dialog Features:
-
-- **Visual Warning**: Red header with alert icon
-- **Detailed Information**: Lists all data types that will be deleted
-  - Daily tasks, other tasks, weekly progress tasks
-  - Reading tracker data
-  - Today's focus items
-  - Countdowns and weekly statistics
-  - All user preferences
-- **Warning Alert**: Yellow alert box emphasizing irreversibility
-- **Safe UX**: Requires explicit confirmation click
-- **Action Buttons**: Cancel (grey, text) and Delete (red, elevated)
-
-#### Technical Implementation:
-
-- **Confirmation Dialog**: Vuetify v-dialog with max-width 400px
-- **localStorage Clearing**: Removes all app-related keys
-- **Status Feedback**: Success message with auto-reload
-- **Error Handling**: Try-catch with user-friendly error messages
-- **Auto-reload**: Page refreshes after 1.5 seconds to show clean state
-
-#### User Experience:
-
-1. User clicks "Delete All Data" button
-2. Confirmation dialog appears with detailed warning
-3. User must explicitly click "Delete All Data" to confirm
-4. All localStorage data is cleared
-5. Success message appears
-6. Page auto-reloads to show empty state
-7. User can then upload new data or start fresh
-
-#### Safety Features:
-
-- ✅ Requires explicit confirmation (not accidental)
-- ✅ Clear warning about irreversibility
-- ✅ Lists exactly what will be deleted
-- ✅ Recommends downloading backup first
-- ✅ Cancel button easily accessible
-- ✅ Visual warning colors (red, yellow)
-
-### Changed
-
-// REFACTORED: App.vue for better code organization
-
-- **App.vue**: Simplified to pure layout orchestrator (60 lines → 40 lines)
-  - Removed all header control logic (~150 lines)
-  - Removed dark mode state management
-  - Removed data management functions
-  - Removed menu state and file handling
-  - Now only handles:
-    - Component imports
-    - Layout structure (v-container, v-row, v-col)
-    - Dark mode class updates (via event from HeaderControls)
-  - Single event handler: `@dark-mode-change`
-
-#### Benefits of Refactoring:
-
-1. **Cleaner App.vue**: Reduced from 200+ lines to ~60 lines
-2. **Better separation of concerns**: Header logic separated from layout
-3. **Easier maintenance**: All header code in one component
-4. **Reusability**: HeaderControls can be reused in other views
-5. **Testability**: Can test HeaderControls independently
-6. **Standard pattern**: Follows industry best practices (Gmail, GitHub, Notion)
-7. **Proper Vue patterns**: Uses emits for parent-child communication
-
-### Technical Implementation
-
-**Component Communication:**
-
-```typescript
-// HeaderControls.vue emits
-emit("darkModeChange", boolean)
-
-// App.vue handles
-@dark-mode-change="handleDarkModeChange"
-```
-
-**State Management:**
-
-- HeaderControls: Owns dark mode state internally
-- App.vue: Listens to changes and updates body class
-- localStorage: Persists dark mode preference
-
-**File Structure:**
-
-```
-src/components/
-├── HeaderControls.vue       # NEW: All header controls
-├── DailyTasks.vue
-├── TodaysFocus.vue
-├── WeekNumber.vue
-└── ... (other dashboard components)
-```
-
-**Code Organization:**
-
-- Before: 200+ lines in App.vue (layout + header logic)
-- After: 60 lines in App.vue (layout only)
-- HeaderControls: 190 lines (all header concerns)
-- Net result: Better organized, same functionality
+- Simple one-click access to visibility settings from fixed header
+- Clear visual feedback with checkboxes showing current state
+- Ability to preview changes before committing
+- Reset option for quick restoration to all-visible defaults
+- Persistent settings across browser sessions and page reloads
+- No page reload required when toggling visibility

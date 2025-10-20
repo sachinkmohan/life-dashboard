@@ -37,6 +37,11 @@ export const getAllAppData = () => {
       {}
     ),
     timeByUser: localStorage.getItem("timeByUser") || "00:00:00",
+    // NEW: Include component visibility settings in backup
+    componentVisibility: safeParseJson(
+      localStorage.getItem("life-dashboard-component-visibility"),
+      {}
+    ),
     exportDate: new Date().toISOString(),
     version: "1.0.0", // NEW: Version for future compatibility checks
   };
@@ -86,6 +91,13 @@ export const restoreAppData = (data: any): void => {
     if (data.timeByUser) {
       localStorage.setItem("timeByUser", data.timeByUser);
     }
+    // NEW: Restore component visibility settings
+    if (data.componentVisibility) {
+      localStorage.setItem(
+        "life-dashboard-component-visibility",
+        JSON.stringify(data.componentVisibility)
+      );
+    }
 
     // NEW: Reload page to reflect all changes across components
     // MODIFIED: Use globalThis instead of window for better compatibility
@@ -115,6 +127,7 @@ export const validateAppData = (data: any): boolean => {
     "countdowns",
     "otherTasksWeeklyStats",
     "timeByUser",
+    "componentVisibility", // NEW: Validate component visibility settings
   ];
 
   const hasExpectedKey = expectedKeys.some((key) => key in data);
@@ -148,6 +161,16 @@ export const validateAppData = (data: any): boolean => {
     return false;
   }
 
+  // NEW: Validate component visibility is an object
+  if (
+    data.componentVisibility !== undefined &&
+    (typeof data.componentVisibility !== "object" ||
+      data.componentVisibility === null ||
+      Array.isArray(data.componentVisibility))
+  ) {
+    return false;
+  }
+
   return true;
 };
 
@@ -168,6 +191,7 @@ export const clearAllAppData = (): void => {
       "otherTasksWeeklyStats",
       "timeByUser",
       "darkMode",
+      "life-dashboard-component-visibility", // NEW: Clear component visibility settings
     ];
 
     // NEW: Remove each key from localStorage

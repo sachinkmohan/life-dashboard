@@ -8,6 +8,11 @@ import ReadingTracker from "./components/ReadingTracker.vue";
 import TodaysFocus from "./components/TodaysFocus.vue";
 import HeaderControls from "./components/HeaderControls.vue"; // NEW: Import HeaderControls component
 import { onMounted } from "vue";
+// NEW: Import component visibility composable
+import { useComponentVisibility } from "./composables/useComponentVisibility";
+
+// NEW: Get component visibility state
+const { visibility } = useComponentVisibility();
 
 onMounted(() => {
   // Initialize dark mode based on saved preference
@@ -33,33 +38,41 @@ const handleDarkModeChange = (value: boolean) => {
   <!-- NEW: HeaderControls component replaces all previous header logic -->
   <HeaderControls @dark-mode-change="handleDarkModeChange" />
 
-  <!-- SIMPLIFIED: Only container with dashboard components -->
+  <!-- REFACTORED: Single flowing row - components wrap naturally without gaps -->
   <v-container fluid class="mt-8">
     <v-row>
-      <v-col cols="4">
+      <!-- Conditionally render TodaysFocus based on visibility -->
+      <v-col cols="4" v-if="visibility.notes">
         <TodaysFocus />
       </v-col>
 
-      <v-col cols="4">
+      <!-- Conditionally render DailyTasks based on visibility -->
+      <v-col cols="4" v-if="visibility.todos">
         <DailyTasks />
       </v-col>
-      <v-col cols="4">
+
+      <!-- Conditionally render OtherTasks (mapped to calendar) -->
+      <v-col cols="4" v-if="visibility.calendar">
         <OtherTasks />
       </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="4">
+
+      <!-- Conditionally render WeeklyProgressTasks based on visibility -->
+      <v-col cols="4" v-if="visibility.habits">
         <WeeklyProgressTasks />
       </v-col>
-      <v-col cols="4">
+
+      <!-- Conditionally render WeekNumber (mapped to weather) -->
+      <v-col cols="4" v-if="visibility.weather">
         <WeekNumber />
       </v-col>
-      <v-col cols="4">
+
+      <!-- Conditionally render CustomCountdown (mapped to weather) -->
+      <v-col cols="4" v-if="visibility.weather">
         <CustomCountdown />
       </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="4">
+
+      <!-- Conditionally render ReadingTracker based on visibility -->
+      <v-col cols="4" v-if="visibility.quotes">
         <ReadingTracker />
       </v-col>
     </v-row>
