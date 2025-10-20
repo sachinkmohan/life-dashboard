@@ -1,6 +1,47 @@
 # Changelog
 
-## [Latest] - Flexible Grid Layout for Component Visibility
+## [Latest] - Fixed Component Visibility Reactivity (Instant Updates)
+
+### Fixed
+
+- **Immediate Visibility Updates**: Component visibility changes now apply instantly without page refresh
+  - Refactored `useComponentVisibility.ts` to use singleton pattern
+  - Moved reactive state to module-level scope (outside function)
+  - All components now share the same reactive `visibility` object
+  - Changes in ComponentVisibilityModal instantly reflect in App.vue
+
+### Technical Implementation
+
+**Root Cause:**
+
+- Previous implementation created separate reactive state instances per component
+- ComponentVisibilityModal and App.vue had disconnected state objects
+- Saving in modal updated one instance, but App.vue watched a different instance
+
+**Solution:**
+
+- Created module-level singleton: `const visibility = ref<ComponentVisibility>(...)`
+- Moved state initialization and localStorage watcher outside composable function
+- Composable now returns reference to shared singleton state
+- All components reference the same reactive object
+
+**Benefits:**
+
+- ✅ Click "Save Changes" → Components show/hide **immediately**
+- ✅ No page refresh required
+- ✅ True reactive state synchronization across all components
+- ✅ localStorage persistence still works perfectly
+- ✅ Maintains all existing functionality (toggle, reset, etc.)
+
+**Code Changes:**
+
+- `useComponentVisibility.ts`: Refactored to singleton pattern (15 lines moved to module scope)
+- No changes needed to App.vue or ComponentVisibilityModal.vue
+- Automatic reactivity works through Vue's reactive system
+
+---
+
+## [Previous] - Flexible Grid Layout for Component Visibility
 
 ### Enhanced
 
