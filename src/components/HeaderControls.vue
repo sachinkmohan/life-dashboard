@@ -97,6 +97,17 @@
       elevation="4"
       class="dark-mode-toggle"
     />
+
+    <!-- NEW: Component visibility toggle button -->
+    <v-btn
+      icon="mdi-view-dashboard-outline"
+      @click="showVisibilityModal = true"
+      color="primary"
+      size="large"
+      elevation="4"
+      title="Toggle Components"
+      aria-label="Toggle component visibility"
+    />
   </div>
 
   <!-- NEW: Confirmation dialog for delete all data -->
@@ -141,24 +152,26 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- NEW: Component visibility modal -->
+  <ComponentVisibilityModal v-model="showVisibilityModal" />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { downloadJSON, uploadJSON } from "../utils/jsonHandler";
-import { clearAllAppData } from "../composables/useDataManagement";
 import {
+  clearAllAppData,
   getAllAppData,
   restoreAppData,
   validateAppData,
 } from "../composables/useDataManagement";
+import ComponentVisibilityModal from "./ComponentVisibilityModal.vue";
 
 // NEW: Component emits for parent communication
-interface Emits {
-  (e: "darkModeChange", value: boolean): void;
-}
-
-const emit = defineEmits<Emits>();
+const emit = defineEmits<{
+  darkModeChange: [value: boolean];
+}>();
 
 // NEW: Dark mode state
 const isDarkMode = ref(false);
@@ -177,6 +190,9 @@ const statusType = ref<"success" | "error" | "warning" | "info">("info");
 
 // NEW: State for delete confirmation dialog
 const showDeleteDialog = ref(false);
+
+// NEW: State for component visibility modal
+const showVisibilityModal = ref(false);
 
 // NEW: Handle download from burger menu
 const handleDownload = async () => {
