@@ -148,3 +148,33 @@ export const validateAppData = (data: any): boolean => {
 
   return true;
 };
+
+/**
+ * Clear all application data from localStorage
+ * @throws Error if data deletion fails
+ */
+export const clearAllAppData = (): void => {
+  try {
+    // NEW: List of all localStorage keys used by the app
+    const keysToDelete = [
+      "tasks",
+      "otherTasks",
+      "weeklyProgressTasks",
+      "readingTrackerTasks",
+      "todaysFocusItems",
+      "countdowns",
+      "otherTasksWeeklyStats",
+      "timeByUser",
+    ];
+
+    // NEW: Remove each key from localStorage
+    keysToDelete.forEach((key) => {
+      localStorage.removeItem(key);
+    });
+
+    console.log("All app data cleared from localStorage");
+  } catch (error) {
+    console.error("Failed to clear data:", error);
+    throw new Error("Data deletion failed.");
+  }
+};

@@ -563,6 +563,54 @@ interface Task {
   - Both buttons size="large" and elevation="4"
   - Menu drops below with 8px offset
 
+// NEW: Delete All Data feature with user confirmation
+
+- **HeaderControls.vue**: Added "Delete All Data" option to burger menu
+  - Delete button with error color (red) and outlined variant
+  - Icon: mdi-delete-forever for clear visual indication
+  - Positioned below Upload button with mt-3 spacing
+  - Opens confirmation dialog before deletion
+
+#### Confirmation Dialog Features:
+
+- **Visual Warning**: Red header with alert icon
+- **Detailed Information**: Lists all data types that will be deleted
+  - Daily tasks, other tasks, weekly progress tasks
+  - Reading tracker data
+  - Today's focus items
+  - Countdowns and weekly statistics
+  - All user preferences
+- **Warning Alert**: Yellow alert box emphasizing irreversibility
+- **Safe UX**: Requires explicit confirmation click
+- **Action Buttons**: Cancel (grey, text) and Delete (red, elevated)
+
+#### Technical Implementation:
+
+- **Confirmation Dialog**: Vuetify v-dialog with max-width 400px
+- **localStorage Clearing**: Removes all app-related keys
+- **Status Feedback**: Success message with auto-reload
+- **Error Handling**: Try-catch with user-friendly error messages
+- **Auto-reload**: Page refreshes after 1.5 seconds to show clean state
+
+#### User Experience:
+
+1. User clicks "Delete All Data" button
+2. Confirmation dialog appears with detailed warning
+3. User must explicitly click "Delete All Data" to confirm
+4. All localStorage data is cleared
+5. Success message appears
+6. Page auto-reloads to show empty state
+7. User can then upload new data or start fresh
+
+#### Safety Features:
+
+- ✅ Requires explicit confirmation (not accidental)
+- ✅ Clear warning about irreversibility
+- ✅ Lists exactly what will be deleted
+- ✅ Recommends downloading backup first
+- ✅ Cancel button easily accessible
+- ✅ Visual warning colors (red, yellow)
+
 ### Changed
 
 // REFACTORED: App.vue for better code organization
@@ -623,12 +671,3 @@ src/components/
 - After: 60 lines in App.vue (layout only)
 - HeaderControls: 190 lines (all header concerns)
 - Net result: Better organized, same functionality
-
-**Follows Industry Standards:**
-
-- ✅ Separation of concerns (header vs layout)
-- ✅ Component-based architecture
-- ✅ Event-driven communication
-- ✅ Single responsibility principle
-- ✅ Reusable, testable components
-- ✅ Standard UI patterns (Gmail, GitHub, Notion)

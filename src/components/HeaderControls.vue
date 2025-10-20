@@ -51,6 +51,18 @@
             Upload Data
           </v-btn>
 
+          <!-- NEW: Delete All Data button with warning color -->
+          <v-btn
+            @click="showDeleteDialog = true"
+            color="error"
+            variant="outlined"
+            prepend-icon="mdi-delete-forever"
+            block
+            class="mt-3"
+          >
+            Delete All Data
+          </v-btn>
+
           <!-- NEW: Hidden file input -->
           <input
             ref="fileInputRef"
@@ -86,6 +98,49 @@
       class="dark-mode-toggle"
     />
   </div>
+
+  <!-- NEW: Confirmation dialog for delete all data -->
+  <v-dialog v-model="showDeleteDialog" max-width="400">
+    <v-card>
+      <v-card-title class="text-h6 font-weight-bold bg-error text-white pa-4">
+        <v-icon start color="white">mdi-alert-circle</v-icon>
+        Delete All Data?
+      </v-card-title>
+
+      <v-card-text class="pa-6">
+        <p class="text-body-1 mb-3">
+          This will permanently delete <strong>all your data</strong> including:
+        </p>
+        <ul class="text-body-2 ml-4 mb-4">
+          <li>All tasks (Daily, Other, Weekly Progress)</li>
+          <li>Reading tracker data</li>
+          <li>Today's focus items</li>
+          <li>Countdowns</li>
+          <li>Weekly statistics</li>
+          <li>All preferences</li>
+        </ul>
+        <v-alert type="warning" density="compact" class="mb-0">
+          <strong>This action cannot be undone!</strong><br />
+          Make sure you have downloaded a backup if needed.
+        </v-alert>
+      </v-card-text>
+
+      <v-card-actions class="pa-4 pt-0">
+        <v-spacer />
+        <v-btn color="grey" variant="text" @click="showDeleteDialog = false">
+          Cancel
+        </v-btn>
+        <v-btn
+          color="error"
+          variant="elevated"
+          @click="handleDeleteAllData"
+          prepend-icon="mdi-delete-forever"
+        >
+          Delete All Data
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -118,6 +173,9 @@ const isDownloading = ref(false);
 const isUploading = ref(false);
 const statusMessage = ref("");
 const statusType = ref<"success" | "error" | "warning" | "info">("info");
+
+// NEW: State for delete confirmation dialog
+const showDeleteDialog = ref(false);
 
 // NEW: Handle download from burger menu
 const handleDownload = async () => {
@@ -176,6 +234,44 @@ const handleFileChange = async (e: Event) => {
     console.error("Upload failed:", error);
   } finally {
     isUploading.value = false;
+  }
+};
+
+// NEW: Handle delete all data with localStorage clearing
+const handleDeleteAllData = () => {
+  try {
+    // Close the dialog first
+    showDeleteDialog.value = false;
+
+    // Clear all localStorage keys related to the app
+    const keysToDelete = [
+      "tasks",
+      "otherTasks",
+      "weeklyProgressTasks",
+      "readingTrackerTasks",
+      "todaysFocusItems",
+      "countdowns",
+      "otherTasksWeeklyStats",
+      "timeByUser",
+      "darkMode", // Also clear dark mode preference
+    ];
+
+    keysToDelete.forEach((key) => {
+      localStorage.removeItem(key);
+    });
+
+    // Show success message
+    statusMessage.value = "All data deleted successfully! Reloading...";
+    statusType.value = "success";
+
+    // Reload page after short delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+  } catch (error) {
+    statusMessage.value = "Failed to delete data. Please try again.";
+    statusType.value = "error";
+    console.error("Delete failed:", error);
   }
 };
 
