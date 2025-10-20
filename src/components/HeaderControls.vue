@@ -161,6 +161,11 @@ const handleFileChange = async (e: Event) => {
     statusMessage.value = "Data uploaded successfully! Reloading...";
     statusType.value = "success";
 
+    // Give user time to see the success message before reloading
+    setTimeout(() => {
+      globalThis.location.reload();
+    }, 1000);
+
     if (fileInputRef.value) {
       fileInputRef.value.value = "";
     }
@@ -177,6 +182,7 @@ const handleFileChange = async (e: Event) => {
 // NEW: Toggle dark mode and emit to parent
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
+  localStorage.setItem("darkMode", String(isDarkMode.value));
   emit("darkModeChange", isDarkMode.value);
 };
 

@@ -5,22 +5,36 @@
  * Get all application data from localStorage for export
  * @returns Object containing all app data
  */
+
+const safeParseJson = (value: string | null, defaultValue: any) => {
+  try {
+    return value ? JSON.parse(value) : defaultValue;
+  } catch (error) {
+    console.warn("Failed to parse JSON from localStorage:", error);
+    return defaultValue;
+  }
+};
+
 export const getAllAppData = () => {
   return {
-    tasks: JSON.parse(localStorage.getItem("tasks") || "[]"),
-    otherTasks: JSON.parse(localStorage.getItem("otherTasks") || "[]"),
-    weeklyProgressTasks: JSON.parse(
-      localStorage.getItem("weeklyProgressTasks") || "[]"
+    tasks: safeParseJson(localStorage.getItem("tasks"), []),
+    otherTasks: safeParseJson(localStorage.getItem("otherTasks"), []),
+    weeklyProgressTasks: safeParseJson(
+      localStorage.getItem("weeklyProgressTasks"),
+      []
     ),
-    readingTrackerTasks: JSON.parse(
-      localStorage.getItem("readingTrackerTasks") || "[]"
+    readingTrackerTasks: safeParseJson(
+      localStorage.getItem("readingTrackerTasks"),
+      []
     ),
-    todaysFocusItems: JSON.parse(
-      localStorage.getItem("todaysFocusItems") || "[]"
+    todaysFocusItems: safeParseJson(
+      localStorage.getItem("todaysFocusItems"),
+      []
     ),
-    countdowns: JSON.parse(localStorage.getItem("countdowns") || "[]"),
-    otherTasksWeeklyStats: JSON.parse(
-      localStorage.getItem("otherTasksWeeklyStats") || "{}"
+    countdowns: safeParseJson(localStorage.getItem("countdowns"), []),
+    otherTasksWeeklyStats: safeParseJson(
+      localStorage.getItem("otherTasksWeeklyStats"),
+      {}
     ),
     timeByUser: localStorage.getItem("timeByUser") || "00:00:00",
     exportDate: new Date().toISOString(),
@@ -88,12 +102,10 @@ export const restoreAppData = (data: any): void => {
  * @returns true if valid, false otherwise
  */
 export const validateAppData = (data: any): boolean => {
-  // NEW: Basic validation to ensure data has expected structure
   if (!data || typeof data !== "object") {
     return false;
   }
 
-  // Check if at least one expected property exists
   const expectedKeys = [
     "tasks",
     "otherTasks",
@@ -101,7 +113,38 @@ export const validateAppData = (data: any): boolean => {
     "readingTrackerTasks",
     "todaysFocusItems",
     "countdowns",
+    "otherTasksWeeklyStats",
+    "timeByUser",
   ];
 
-  return expectedKeys.some((key) => key in data);
+  const hasExpectedKey = expectedKeys.some((key) => key in data);
+  if (!hasExpectedKey) return false;
+
+  // Validate types for critical fields
+  const arrayKeys = [
+    "tasks",
+    "otherTasks",
+    "weeklyProgressTasks",
+    "readingTrackerTasks",
+    "todaysFocusItems",
+    "countdowns",
+  ];
+  for (const key of arrayKeys) {
+    if (data[key] !== undefined && !Array.isArray(data[key])) {
+      return false;
+    }
+  }
+
+  if (
+    data.otherTasksWeeklyStats !== undefined &&
+    typeof data.otherTasksWeeklyStats !== "object"
+  ) {
+    return false;
+  }
+
+  if (data.timeByUser !== undefined && typeof data.timeByUser !== "string") {
+    return false;
+  }
+
+  return true;
 };

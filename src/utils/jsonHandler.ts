@@ -1,7 +1,15 @@
 // Utility function to download data as JSON file
 export const downloadJSON = (data: any, fileName: string = "data.json") => {
   // Create a JSON string from the data
-  const jsonString = JSON.stringify(data, null, 2);
+  let jsonString: string;
+  try {
+    jsonString = JSON.stringify(data, null, 2);
+  } catch (error) {
+    throw new Error(
+      "Failed to serialize data to JSON: " +
+        (error instanceof Error ? error.message : String(error))
+    );
+  }
   const blob = new Blob([jsonString], { type: "application/json" });
 
   // Create download link and trigger download
@@ -13,28 +21,29 @@ export const downloadJSON = (data: any, fileName: string = "data.json") => {
   link.click();
 
   // Cleanup
-  document.body.removeChild(link);
+  // Use modern remove() method instead of removeChild() for cleaner code
+  link.remove();
   URL.revokeObjectURL(url);
 };
 
 // Utility function to upload and parse JSON file
+// Refactored to use modern Blob#text() API instead of FileReader
 export const uploadJSON = (file: File): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
+  return file
+    .text()
+    .then((text) => {
       try {
-        const json = JSON.parse(e.target?.result as string);
-        resolve(json);
+        const json = JSON.parse(text);
+        return json;
       } catch (error) {
-        reject(new Error("Invalid JSON file"));
+        // Enhanced error handling: include original error details for better debugging
+        throw new Error(
+          "Invalid JSON file: " +
+            (error instanceof Error ? error.message : String(error))
+        );
       }
-    };
-
-    reader.onerror = () => {
-      reject(new Error("Failed to read file"));
-    };
-
-    reader.readAsText(file);
-  });
+    })
+    .catch((error) => {
+      throw error instanceof Error ? error : new Error("Failed to read file");
+    });
 };

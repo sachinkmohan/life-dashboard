@@ -28,7 +28,7 @@
           variant="outlined"
           prepend-icon="mdi-upload"
           size="large"
-          :disabled="isUploading"
+          :loading="isUploading"
         >
           Upload Data
         </v-btn>
@@ -117,13 +117,8 @@ const handleFileChange = async (e: Event) => {
     // NEW: Use composable function to restore data
     restoreAppData(uploadedData);
 
-    statusMessage.value = "Data uploaded successfully! Reloading...";
+    statusMessage.value = "Data uploaded successfully!";
     statusType.value = "success";
-
-    // Reset input
-    if (fileInputRef.value) {
-      fileInputRef.value.value = "";
-    }
   } catch (error) {
     statusMessage.value =
       error instanceof Error
@@ -133,35 +128,11 @@ const handleFileChange = async (e: Event) => {
     console.error("Upload failed:", error);
   } finally {
     isUploading.value = false;
+
+    // Reset input
+    if (fileInputRef.value) {
+      fileInputRef.value.value = "";
+    }
   }
 };
 </script>
-
-<style scoped>
-/* NEW: Container styling with proper spacing */
-.data-controls {
-  padding: 16px;
-  border-radius: 8px;
-  background-color: rgba(25, 118, 210, 0.04);
-}
-
-/* NEW: Gap utility for spacing between buttons */
-.gap-3 {
-  gap: 12px;
-}
-
-/* NEW: Responsive adjustments for mobile screens */
-@media (max-width: 600px) {
-  .data-controls {
-    padding: 12px;
-  }
-
-  .d-flex {
-    flex-direction: column;
-  }
-
-  .d-flex > * {
-    width: 100%;
-  }
-}
-</style>

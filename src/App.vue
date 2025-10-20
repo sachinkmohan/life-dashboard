@@ -7,7 +7,15 @@ import WeeklyProgressTasks from "./components/WeeklyProgressTasks.vue";
 import ReadingTracker from "./components/ReadingTracker.vue";
 import TodaysFocus from "./components/TodaysFocus.vue";
 import HeaderControls from "./components/HeaderControls.vue"; // NEW: Import HeaderControls component
+import { onMounted } from "vue";
 
+onMounted(() => {
+  // Initialize dark mode based on saved preference
+  const savedPreference = localStorage.getItem("darkMode");
+  if (savedPreference === "true") {
+    document.body.classList.add("dark-mode");
+  }
+});
 // NEW: Handle dark mode change from HeaderControls component
 const handleDarkModeChange = (value: boolean) => {
   const body = document.body;
