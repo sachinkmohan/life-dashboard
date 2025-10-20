@@ -62,6 +62,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { downloadJSON, uploadJSON } from "../utils/jsonHandler";
+// NEW: Import data management functions from composable
+import {
+  getAllAppData,
+  restoreAppData,
+  validateAppData,
+} from "../composables/useDataManagement";
 
 // NEW: Component state management
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -70,34 +76,11 @@ const isUploading = ref(false);
 const statusMessage = ref("");
 const statusType = ref<"success" | "error" | "warning" | "info">("info");
 
-// NEW: Get all app data from localStorage for export
-const getAllAppData = () => {
-  return {
-    tasks: JSON.parse(localStorage.getItem("tasks") || "[]"),
-    otherTasks: JSON.parse(localStorage.getItem("otherTasks") || "[]"),
-    weeklyProgressTasks: JSON.parse(
-      localStorage.getItem("weeklyProgressTasks") || "[]"
-    ),
-    readingTrackerTasks: JSON.parse(
-      localStorage.getItem("readingTrackerTasks") || "[]"
-    ),
-    todaysFocusItems: JSON.parse(
-      localStorage.getItem("todaysFocusItems") || "[]"
-    ),
-    countdowns: JSON.parse(localStorage.getItem("countdowns") || "[]"),
-    otherTasksWeeklyStats: JSON.parse(
-      localStorage.getItem("otherTasksWeeklyStats") || "{}"
-    ),
-    timeByUser: localStorage.getItem("timeByUser") || "00:00:00",
-    exportDate: new Date().toISOString(),
-  };
-};
-
-// NEW: Handle download button click with error handling
+// MODIFIED: Simplified - now uses composable function
 const handleDownload = async () => {
   try {
     isDownloading.value = true;
-    const data = getAllAppData();
+    const data = getAllAppData(); // NEW: Use composable function
     const timestamp = new Date().toISOString().split("T")[0];
     await downloadJSON(data, `life-dashboard-${timestamp}.json`);
     statusMessage.value = "Data downloaded successfully!";
@@ -116,7 +99,7 @@ const handleUploadClick = () => {
   fileInputRef.value?.click();
 };
 
-// NEW: Handle file selection and data restoration
+// MODIFIED: Enhanced with validation and uses composable
 const handleFileChange = async (e: Event) => {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];
@@ -126,53 +109,26 @@ const handleFileChange = async (e: Event) => {
     isUploading.value = true;
     const uploadedData = await uploadJSON(file);
 
-    // Restore all data to localStorage
-    if (uploadedData.tasks)
-      localStorage.setItem("tasks", JSON.stringify(uploadedData.tasks));
-    if (uploadedData.otherTasks)
-      localStorage.setItem(
-        "otherTasks",
-        JSON.stringify(uploadedData.otherTasks)
-      );
-    if (uploadedData.weeklyProgressTasks)
-      localStorage.setItem(
-        "weeklyProgressTasks",
-        JSON.stringify(uploadedData.weeklyProgressTasks)
-      );
-    if (uploadedData.readingTrackerTasks)
-      localStorage.setItem(
-        "readingTrackerTasks",
-        JSON.stringify(uploadedData.readingTrackerTasks)
-      );
-    if (uploadedData.todaysFocusItems)
-      localStorage.setItem(
-        "todaysFocusItems",
-        JSON.stringify(uploadedData.todaysFocusItems)
-      );
-    if (uploadedData.countdowns)
-      localStorage.setItem(
-        "countdowns",
-        JSON.stringify(uploadedData.countdowns)
-      );
-    if (uploadedData.otherTasksWeeklyStats)
-      localStorage.setItem(
-        "otherTasksWeeklyStats",
-        JSON.stringify(uploadedData.otherTasksWeeklyStats)
-      );
-    if (uploadedData.timeByUser)
-      localStorage.setItem("timeByUser", uploadedData.timeByUser);
+    // NEW: Validate data before restoring
+    if (!validateAppData(uploadedData)) {
+      throw new Error("Invalid data format");
+    }
+
+    // NEW: Use composable function to restore data
+    restoreAppData(uploadedData);
 
     statusMessage.value = "Data uploaded successfully! Reloading...";
     statusType.value = "success";
 
-    // Reset input and reload page after short delay
+    // Reset input
     if (fileInputRef.value) {
       fileInputRef.value.value = "";
     }
-    setTimeout(() => window.location.reload(), 1500);
   } catch (error) {
     statusMessage.value =
-      "Failed to upload JSON file. Please check the file format.";
+      error instanceof Error
+        ? error.message
+        : "Failed to upload JSON file. Please check the file format.";
     statusType.value = "error";
     console.error("Upload failed:", error);
   } finally {

@@ -530,65 +530,56 @@ interface Task {
 
 ### Added
 
-// NEW: Simplified Vue 3 Data Management (Minimal Implementation)
+// NEW: Composable for Data Management (Better Code Organization)
 
-- **DataControls.vue**: Single Vue 3 component for data export/import
-  - Download button: Exports all localStorage data as JSON
-  - Upload button: Imports and restores data from JSON
-  - Uses only Vuetify 3 components (no custom CSS)
-  - Integrated directly into App.vue
+- **useDataManagement.ts**: Centralized composable for all data operations
+  - `getAllAppData()`: Exports all localStorage data with version info
+  - `restoreAppData()`: Restores uploaded data to localStorage
+  - `validateAppData()`: Validates data structure before import
+  - Better separation of concerns
+  - Reusable across components if needed
 
-#### Implementation (Minimal Files):
+### Changed
 
-- **jsonHandler.ts**: Reusable utility functions (44 lines)
-- **DataControls.vue**: Self-contained component (103 lines)
-- **App.vue**: Integration point (1 import, 1 component tag)
+// REFACTORED: Improved code organization and maintainability
 
-#### Features:
+- **DataControls.vue**: Now uses composable functions
+  - Cleaner component code
+  - Added data validation before import
+  - Better error messages
+  - No business logic in component
+- **App.vue**: Removed data management logic
+  - No longer needs getAllAppData() function
+  - No longer needs handleDataUpload() function
+  - Simplified to only UI concerns (dark mode, layout)
+  - DataControls is now self-contained
 
-- Complete data backup and restore
-- User feedback with v-alert
-- Loading states on buttons
-- Error handling
-- Auto-reload after import
+### Technical Improvements
 
-#### Vuetify 3 Styling (No Custom CSS):
+**Code Organization:**
 
-- v-card with elevation for visual hierarchy
-- v-btn with color/variant/prepend-icon props
-- v-alert for status messages
-- Spacing: ga-3, pa-4, mb-6, mt-4 utilities
-- Responsive: flex-wrap for mobile
+- Moved data logic from App.vue (100+ lines) to dedicated composable
+- Component now focuses only on UI and user interaction
+- Business logic separated into reusable functions
+- Follows Vue 3 Composition API best practices
 
-### Removed
+**File Structure:**
 
-// CLEANUP: Deleted unnecessary React files from initial implementation
+```
+src/
+├── composables/
+│   └── useDataManagement.ts    # NEW: Data management logic
+├── components/
+│   └── DataControls.vue         # MODIFIED: Uses composable
+├── utils/
+│   └── jsonHandler.ts           # Existing: File operations
+└── App.vue                      # SIMPLIFIED: Only UI concerns
+```
 
-- **src/components/DataControls.tsx**: React component (not needed in Vue 3 app)
-- **src/components/DataControls.css**: Custom CSS file (using Vuetify 3 utilities instead)
+**Benefits:**
 
-### Technical Summary
-
-**Total Files Modified/Created: 3**
-
-1. Created: `src/components/DataControls.vue` (Vue 3 component)
-2. Modified: `src/App.vue` (added 1 import + 1 component)
-3. Reused: `src/utils/jsonHandler.ts` (already existed)
-
-**Lines of Code: ~150 total**
-
-- jsonHandler.ts: 44 lines
-- DataControls.vue: 103 lines
-- App.vue changes: 3 lines
-
-**Dependencies: 0 new packages**
-
-- Uses existing: vue, vuetify, @mdi/font
-
-**Implementation Philosophy:**
-
-- Minimal file structure
-- Reuse existing utilities
-- Pure Vuetify 3 styling
-- No custom CSS needed
-- Self-contained component
+- Better testability (composable can be tested independently)
+- Improved maintainability (logic in one place)
+- Reusability (composable can be used in other components)
+- Cleaner component code (single responsibility)
+- Type safety with JSDoc comments
