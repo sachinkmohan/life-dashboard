@@ -146,6 +146,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { downloadJSON, uploadJSON } from "../utils/jsonHandler";
+import { clearAllAppData } from "../composables/useDataManagement";
 import {
   getAllAppData,
   restoreAppData,
@@ -243,22 +244,7 @@ const handleDeleteAllData = () => {
     // Close the dialog first
     showDeleteDialog.value = false;
 
-    // Clear all localStorage keys related to the app
-    const keysToDelete = [
-      "tasks",
-      "otherTasks",
-      "weeklyProgressTasks",
-      "readingTrackerTasks",
-      "todaysFocusItems",
-      "countdowns",
-      "otherTasksWeeklyStats",
-      "timeByUser",
-      "darkMode", // Also clear dark mode preference
-    ];
-
-    keysToDelete.forEach((key) => {
-      localStorage.removeItem(key);
-    });
+    clearAllAppData();
 
     // Show success message
     statusMessage.value = "All data deleted successfully! Reloading...";
@@ -266,7 +252,7 @@ const handleDeleteAllData = () => {
 
     // Reload page after short delay
     setTimeout(() => {
-      window.location.reload();
+      globalThis.location.reload();
     }, 1500);
   } catch (error) {
     statusMessage.value = "Failed to delete data. Please try again.";

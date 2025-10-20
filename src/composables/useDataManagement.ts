@@ -137,7 +137,9 @@ export const validateAppData = (data: any): boolean => {
 
   if (
     data.otherTasksWeeklyStats !== undefined &&
-    typeof data.otherTasksWeeklyStats !== "object"
+    (typeof data.otherTasksWeeklyStats !== "object" ||
+      data.otherTasksWeeklyStats === null ||
+      Array.isArray(data.otherTasksWeeklyStats))
   ) {
     return false;
   }
@@ -165,12 +167,14 @@ export const clearAllAppData = (): void => {
       "countdowns",
       "otherTasksWeeklyStats",
       "timeByUser",
+      "darkMode",
     ];
 
     // NEW: Remove each key from localStorage
-    keysToDelete.forEach((key) => {
+    // MODIFIED: Use for...of instead of forEach for better performance
+    for (const key of keysToDelete) {
       localStorage.removeItem(key);
-    });
+    }
 
     console.log("All app data cleared from localStorage");
   } catch (error) {
