@@ -173,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeUnmount, onMounted, computed } from "vue";
+import { ref, onBeforeUnmount, onMounted, computed, watch } from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 // Modified: Add isFocused property to Task interface
@@ -237,6 +237,20 @@ const onTaskCheck = (task: Task) => {
     task.count = (task.count || 0) + 1;
   }
 };
+
+// Added: Watch tasks array and save to localStorage whenever it changes
+watch(
+  tasks,
+  (newTasks) => {
+    try {
+      localStorage.setItem("tasks", JSON.stringify(newTasks));
+    } catch (error) {
+      console.error("Failed to save tasks to localStorage:", error);
+      // Optionally notify user via toast/snackbar
+    }
+  },
+  { deep: true }
+);
 
 // Load tasks from localStorage on component mount
 onMounted(() => {
