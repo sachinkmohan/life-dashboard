@@ -1,6 +1,44 @@
 # Changelog
 
-## [Latest] - Fixed Component Visibility Reactivity (Instant Updates)
+## [Latest] - Component Visibility in Data Management
+
+### Enhanced
+
+- **useDataManagement.ts**: Added component visibility settings to backup/restore functionality
+  - `getAllAppData()`: Now includes `componentVisibility` field in exported data
+  - `restoreAppData()`: Restores component visibility preferences from uploaded backup
+  - `validateAppData()`: Validates component visibility data structure
+  - `clearAllAppData()`: Removes `life-dashboard-component-visibility` key when clearing all data
+
+### Technical Details
+
+**New Field in Backup:**
+
+- `componentVisibility`: Object containing widget visibility preferences (weather, calendar, todos, habits, notes, quotes)
+- Stored in localStorage with key: `"life-dashboard-component-visibility"`
+- Safely parsed using `safeParseJson()` with null as default
+
+**Validation:**
+
+- Component visibility validated as non-null object (not array)
+- Ensures proper data structure when restoring from backup
+
+**Benefits:**
+
+- ✅ Component visibility settings now preserved in data backups
+- ✅ Upload backup restores both data and UI preferences
+- ✅ Delete all data now properly clears visibility settings
+- ✅ Maintains backward compatibility with old backups (null default)
+
+**Integration:**
+
+- Works seamlessly with Download/Upload buttons in HeaderControls
+- Visibility settings persist across data backup/restore cycles
+- No manual reconfiguration needed after importing data
+
+---
+
+## [Previous] - Fixed Component Visibility Reactivity (Instant Updates)
 
 ### Fixed
 
