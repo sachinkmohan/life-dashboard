@@ -526,8 +526,148 @@ interface Task {
 - Added consistent grey border to progress bar to make empty portion always visible
 - Progress bar now has uniform styling regardless of completion status
 
-## [Unreleased] - 2024-01-XX
+## [Unreleased]
 
-### Fixed
+### Added
 
-- **TodaysFocus.vue**: Fixed syntax error caused by misplaced `watch` and stray braces in `clearAllFocus` function. Now all functions are properly closed and the watcher is at the top level.
+// NEW: HeaderControls component following industry-standard patterns
+
+- **HeaderControls.vue**: Self-contained header controls component
+  - Burger menu with data management (download/upload)
+  - Dark mode toggle
+  - All header-related state and logic
+  - Emits dark mode changes to parent
+  - Persists dark mode preference to localStorage
+  - Fixed positioning in top-right corner
+  - 12px gap between controls (standard spacing)
+
+#### Component Features:
+
+- **Data Management Menu**:
+  - Download button (primary, elevated)
+  - Upload button (secondary, outlined)
+  - Status alerts with auto-dismiss
+  - File validation before import
+  - Loading states during operations
+- **Dark Mode Toggle**:
+
+  - Sun/moon icon based on state
+  - Yellow color in dark mode, primary in light mode
+  - Persists preference to localStorage
+  - Emits changes to parent component
+
+- **Visual Design**:
+  - Fixed position (top: 20px, right: 20px)
+  - z-index: 1000 for proper layering
+  - Flex layout with 12px gap
+  - Both buttons size="large" and elevation="4"
+  - Menu drops below with 8px offset
+
+// NEW: Delete All Data feature with user confirmation
+
+- **HeaderControls.vue**: Added "Delete All Data" option to burger menu
+  - Delete button with error color (red) and outlined variant
+  - Icon: mdi-delete-forever for clear visual indication
+  - Positioned below Upload button with mt-3 spacing
+  - Opens confirmation dialog before deletion
+
+#### Confirmation Dialog Features:
+
+- **Visual Warning**: Red header with alert icon
+- **Detailed Information**: Lists all data types that will be deleted
+  - Daily tasks, other tasks, weekly progress tasks
+  - Reading tracker data
+  - Today's focus items
+  - Countdowns and weekly statistics
+  - All user preferences
+- **Warning Alert**: Yellow alert box emphasizing irreversibility
+- **Safe UX**: Requires explicit confirmation click
+- **Action Buttons**: Cancel (grey, text) and Delete (red, elevated)
+
+#### Technical Implementation:
+
+- **Confirmation Dialog**: Vuetify v-dialog with max-width 400px
+- **localStorage Clearing**: Removes all app-related keys
+- **Status Feedback**: Success message with auto-reload
+- **Error Handling**: Try-catch with user-friendly error messages
+- **Auto-reload**: Page refreshes after 1.5 seconds to show clean state
+
+#### User Experience:
+
+1. User clicks "Delete All Data" button
+2. Confirmation dialog appears with detailed warning
+3. User must explicitly click "Delete All Data" to confirm
+4. All localStorage data is cleared
+5. Success message appears
+6. Page auto-reloads to show empty state
+7. User can then upload new data or start fresh
+
+#### Safety Features:
+
+- ✅ Requires explicit confirmation (not accidental)
+- ✅ Clear warning about irreversibility
+- ✅ Lists exactly what will be deleted
+- ✅ Recommends downloading backup first
+- ✅ Cancel button easily accessible
+- ✅ Visual warning colors (red, yellow)
+
+### Changed
+
+// REFACTORED: App.vue for better code organization
+
+- **App.vue**: Simplified to pure layout orchestrator (60 lines → 40 lines)
+  - Removed all header control logic (~150 lines)
+  - Removed dark mode state management
+  - Removed data management functions
+  - Removed menu state and file handling
+  - Now only handles:
+    - Component imports
+    - Layout structure (v-container, v-row, v-col)
+    - Dark mode class updates (via event from HeaderControls)
+  - Single event handler: `@dark-mode-change`
+
+#### Benefits of Refactoring:
+
+1. **Cleaner App.vue**: Reduced from 200+ lines to ~60 lines
+2. **Better separation of concerns**: Header logic separated from layout
+3. **Easier maintenance**: All header code in one component
+4. **Reusability**: HeaderControls can be reused in other views
+5. **Testability**: Can test HeaderControls independently
+6. **Standard pattern**: Follows industry best practices (Gmail, GitHub, Notion)
+7. **Proper Vue patterns**: Uses emits for parent-child communication
+
+### Technical Implementation
+
+**Component Communication:**
+
+```typescript
+// HeaderControls.vue emits
+emit("darkModeChange", boolean)
+
+// App.vue handles
+@dark-mode-change="handleDarkModeChange"
+```
+
+**State Management:**
+
+- HeaderControls: Owns dark mode state internally
+- App.vue: Listens to changes and updates body class
+- localStorage: Persists dark mode preference
+
+**File Structure:**
+
+```
+src/components/
+├── HeaderControls.vue       # NEW: All header controls
+├── DailyTasks.vue
+├── TodaysFocus.vue
+├── WeekNumber.vue
+└── ... (other dashboard components)
+```
+
+**Code Organization:**
+
+- Before: 200+ lines in App.vue (layout + header logic)
+- After: 60 lines in App.vue (layout only)
+- HeaderControls: 190 lines (all header concerns)
+- Net result: Better organized, same functionality

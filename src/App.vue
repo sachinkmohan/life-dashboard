@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
 import WeekNumber from "./components/WeekNumber.vue";
 import DailyTasks from "./components/DailyTasks.vue";
 import CustomCountdown from "./components/CustomCountdown.vue";
@@ -7,44 +6,35 @@ import OtherTasks from "./components/OtherTasks.vue";
 import WeeklyProgressTasks from "./components/WeeklyProgressTasks.vue";
 import ReadingTracker from "./components/ReadingTracker.vue";
 import TodaysFocus from "./components/TodaysFocus.vue";
+import HeaderControls from "./components/HeaderControls.vue"; // NEW: Import HeaderControls component
+import { onMounted } from "vue";
 
-const isDarkMode = ref(false);
-
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value;
-  updateBodyClass();
-};
-
-const updateBodyClass = () => {
+onMounted(() => {
+  // Initialize dark mode based on saved preference
+  const savedPreference = localStorage.getItem("darkMode");
+  if (savedPreference === "true") {
+    document.body.classList.add("dark-mode");
+  }
+});
+// NEW: Handle dark mode change from HeaderControls component
+const handleDarkModeChange = (value: boolean) => {
   const body = document.body;
-  if (isDarkMode.value) {
+  if (value) {
     body.classList.add("dark-mode");
   } else {
     body.classList.remove("dark-mode");
   }
+  // NEW: Persist dark mode preference
+  localStorage.setItem("darkMode", value.toString());
 };
-
-onMounted(() => {
-  updateBodyClass();
-});
-
-onUnmounted(() => {
-  document.body.classList.remove("dark-mode");
-});
 </script>
 
 <template>
-  <v-btn
-    :icon="isDarkMode ? 'mdi-weather-sunny' : 'mdi-weather-night'"
-    @click="toggleDarkMode"
-    :color="isDarkMode ? 'yellow' : 'primary'"
-    size="large"
-    class="dark-mode-toggle"
-    elevation="4"
-  >
-  </v-btn>
+  <!-- NEW: HeaderControls component replaces all previous header logic -->
+  <HeaderControls @dark-mode-change="handleDarkModeChange" />
 
-  <v-container fluid>
+  <!-- SIMPLIFIED: Only container with dashboard components -->
+  <v-container fluid class="mt-8">
     <v-row>
       <v-col cols="4">
         <TodaysFocus />
@@ -77,13 +67,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.dark-mode-toggle {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-}
-
 .logo {
   height: 6em;
   padding: 1.5em;
