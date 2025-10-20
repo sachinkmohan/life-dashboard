@@ -38,39 +38,40 @@ const handleDarkModeChange = (value: boolean) => {
   <!-- NEW: HeaderControls component replaces all previous header logic -->
   <HeaderControls @dark-mode-change="handleDarkModeChange" />
 
-  <!-- SIMPLIFIED: Only container with dashboard components -->
+  <!-- REFACTORED: Single flowing row - components wrap naturally without gaps -->
   <v-container fluid class="mt-8">
     <v-row>
-      <!-- NEW: Conditionally render TodaysFocus based on visibility -->
+      <!-- Conditionally render TodaysFocus based on visibility -->
       <v-col cols="4" v-if="visibility.notes">
         <TodaysFocus />
       </v-col>
 
-      <!-- NEW: Conditionally render DailyTasks based on visibility -->
+      <!-- Conditionally render DailyTasks based on visibility -->
       <v-col cols="4" v-if="visibility.todos">
         <DailyTasks />
       </v-col>
-      <!-- NEW: Conditionally render OtherTasks (mapped to calendar) -->
+
+      <!-- Conditionally render OtherTasks (mapped to calendar) -->
       <v-col cols="4" v-if="visibility.calendar">
         <OtherTasks />
       </v-col>
-    </v-row>
-    <v-row>
-      <!-- NEW: Conditionally render WeeklyProgressTasks based on visibility -->
+
+      <!-- Conditionally render WeeklyProgressTasks based on visibility -->
       <v-col cols="4" v-if="visibility.habits">
         <WeeklyProgressTasks />
       </v-col>
-      <!-- NEW: Conditionally render WeekNumber (mapped to weather) -->
+
+      <!-- Conditionally render WeekNumber (mapped to weather) -->
       <v-col cols="4" v-if="visibility.weather">
         <WeekNumber />
       </v-col>
-      <!-- NEW: Conditionally render CustomCountdown (always visible for now) -->
+
+      <!-- Conditionally render CustomCountdown (mapped to weather) -->
       <v-col cols="4" v-if="visibility.weather">
         <CustomCountdown />
       </v-col>
-    </v-row>
-    <v-row>
-      <!-- NEW: Conditionally render ReadingTracker based on visibility -->
+
+      <!-- Conditionally render ReadingTracker based on visibility -->
       <v-col cols="4" v-if="visibility.quotes">
         <ReadingTracker />
       </v-col>

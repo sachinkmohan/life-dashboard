@@ -1,10 +1,48 @@
 # Changelog
 
-## [Latest] - Component Visibility Feature Implementation (Completed)
+## [Latest] - Flexible Grid Layout for Component Visibility
+
+### Enhanced
+
+- **App.vue Layout Optimization**:
+  - Refactored from multiple separate `<v-row>` blocks to a single flowing row
+  - Components now flow naturally left-to-right, top-to-bottom without empty gaps
+  - Maintains original 3-column width (cols="4") for each component
+  - Automatically adjusts layout based on visible components
+  - No empty spaces when components are hidden
+
+### Technical Details
+
+**Layout Behavior:**
+
+- Components wrap naturally at 3 per row (Vuetify's 12-column grid)
+- Hidden components don't leave gaps - remaining components flow continuously
+- Maintains consistent component width regardless of how many are visible
+- Works with any combination of visible/hidden components
+
+**Example Scenarios:**
+
+- All 7 visible: 3 rows (3-3-1 distribution)
+- 5 visible: 2 rows (3-2 distribution)
+- 3 visible: 1 row (3 components)
+- 2 visible: 1 row (2 components, left-aligned)
+
+**Benefits:**
+
+- ✅ Cleaner layout without empty gaps
+- ✅ Maintains original component widths
+- ✅ Natural flow of visible components
+- ✅ Simpler code structure (one row instead of three)
+- ✅ Works seamlessly with visibility toggle feature
+
+---
+
+## [Previous] - Component Visibility Feature Implementation (Completed)
 
 ### Added
 
 - **ComponentVisibilityModal.vue**: New modal component for managing dashboard component visibility
+
   - User-friendly interface with checkboxes for each dashboard widget
   - "Save Changes" button to commit selections
   - "Cancel" button to discard changes without saving
@@ -15,6 +53,7 @@
   - Supports v-model for modal open/close state
 
 - **Dashboard Icon Button in HeaderControls.vue**:
+
   - Added `mdi-view-dashboard-outline` icon button in top-right header
   - Opens ComponentVisibilityModal when clicked
   - Matches styling of other header control buttons (size="large", elevation="4")
@@ -44,6 +83,7 @@
 ### Technical Implementation
 
 **Component Mapping:**
+
 - `weather` → WeekNumber, CustomCountdown
 - `calendar` → OtherTasks
 - `todos` → DailyTasks
@@ -52,6 +92,7 @@
 - `quotes` → ReadingTracker
 
 **Key Features:**
+
 - ✅ Modal with local state prevents changes until "Save" is clicked
 - ✅ Cancel button discards unsaved changes
 - ✅ Reset button restores all-visible defaults
@@ -61,6 +102,7 @@
 - ✅ Error handling for localStorage operations
 
 **Files Modified:**
+
 1. `src/components/ComponentVisibilityModal.vue` - **CREATED**
 2. `src/components/HeaderControls.vue` - Added dashboard button and modal integration
 3. `src/App.vue` - Added conditional rendering with v-if directives
