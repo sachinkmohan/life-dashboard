@@ -214,7 +214,6 @@ const handleSave = () => {
 // NEW: Handle cancel button click
 const handleCancel = () => {
   // Discard local changes and close modal
-  localVisibility.value = { ...visibility.value };
   isOpen.value = false;
 };
 

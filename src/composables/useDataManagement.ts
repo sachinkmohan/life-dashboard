@@ -40,7 +40,7 @@ export const getAllAppData = () => {
     // NEW: Include component visibility settings in backup
     componentVisibility: safeParseJson(
       localStorage.getItem("life-dashboard-component-visibility"),
-      null
+      {}
     ),
     exportDate: new Date().toISOString(),
     version: "1.0.0", // NEW: Version for future compatibility checks
