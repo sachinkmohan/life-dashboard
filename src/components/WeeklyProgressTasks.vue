@@ -483,7 +483,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick } from "vue";
+import {
+  ref,
+  onMounted,
+  computed,
+  nextTick,
+  watch,
+  onBeforeUnmount,
+} from "vue";
 import { v4 as uuidv4 } from "uuid";
 
 interface Task {
@@ -756,6 +763,15 @@ const cancelEdit = () => {
   editedTaskText.value = "";
 };
 
+// Added: Watch tasks array and save to localStorage whenever it changes (including nested properties like subtasks)
+watch(
+  tasks,
+  (newTasks) => {
+    localStorage.setItem("weeklyProgressTasks", JSON.stringify(newTasks));
+  },
+  { deep: true } // Deep watch to detect changes in nested properties (subtasks, done status, etc.)
+);
+
 // Load tasks from localStorage on component mount
 onMounted(() => {
   const savedTasks = localStorage.getItem("weeklyProgressTasks");
@@ -781,6 +797,24 @@ onMounted(() => {
     "sync-focus-done",
     handleSyncFocusDone as EventListener
   );
+});
+
+// Added: Cleanup event listeners on component unmount
+onBeforeUnmount(() => {
+  globalThis.removeEventListener(
+    "remove-from-focus",
+    handleRemoveFromFocus as EventListener
+  );
+  globalThis.removeEventListener(
+    "sync-focus-done",
+    handleSyncFocusDone as EventListener
+  );
+
+  // Modified: Use for...of instead of forEach to clear all subtask input timers
+  for (const timer of subtaskInputTimers.values()) {
+    clearTimeout(timer);
+  }
+  subtaskInputTimers.clear();
 });
 
 // Added: Handle when item is removed from TodaysFocus

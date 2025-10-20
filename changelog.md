@@ -389,7 +389,7 @@
 ### Kept
 
 - **Spotlight Effect**: Subtle background color animation for tasks due today
-- **Border Color Indicators**: Orange border for today, blue border for tomorrow
+- **Border Color Indicators**: Task cards show colored borders matching their urgency level
 - **Dynamic Animation Classes**: `getTaskAnimationClass()` function still determines styling based on deadline urgency
 
 ### Technical Changes
@@ -745,44 +745,37 @@ interface Task {
 
 ## [Unreleased]
 
-### Added
+### Fixed
 
-- **Component Visibility Toggle Feature**: Users can now show/hide individual dashboard components
-  - Created `useComponentVisibility.ts` composable to manage component visibility state
-    - Manages visibility for Weather, Calendar, Todos, Habits, Notes, and Quotes widgets
-    - Automatically persists preferences to localStorage with key `life-dashboard-component-visibility`
-    - Provides toggle, set, and reset functions for visibility management
-    - All components are visible by default
-  - Created `ComponentVisibilityModal.vue` component
-    - Modal dialog with checkboxes for each dashboard widget
-    - "Save Changes" button to apply selections
-    - "Cancel" button to discard changes without saving
-    - "Reset to Defaults" option to show all components
-    - User-friendly descriptions for each component
-  - Added dashboard icon button in `HeaderControls.vue` to open visibility settings
-    - Located in top-right header controls area next to dark mode toggle
-    - Uses `mdi-view-dashboard-outline` icon
-    - Matches styling of other header control buttons (size, elevation)
-  - Components in `App.vue` are now conditionally rendered based on visibility preferences
-    - Each widget wrapped with `v-if` directive checking visibility state
-    - Grid layout automatically adjusts to show only visible components
-  - All visibility settings persist across browser sessions via localStorage
+- Fixed DailyTasks component not persisting tasks to localStorage
+
+  - Added deep watcher on tasks array to automatically save changes to localStorage
+  - Tasks are now properly stored when added, deleted, edited, checked/unchecked, or when count is updated
+  - Tasks persist across page refreshes and component remounts
+
+- Fixed WeeklyProgressTasks component not persisting tasks to localStorage
+
+  - Added deep watcher on tasks array to automatically save changes to localStorage
+  - Weekly tasks now properly persist when added, deleted, edited, checked/unchecked, or when progress is updated
+  - Subtasks are automatically saved when added, deleted, edited, or checked/unchecked
+  - Deadline changes are automatically persisted
+  - Focus state changes (isFocused for tasks and subtasks) are saved
+  - All nested property changes trigger automatic save
+  - Uses "weeklyProgressTasks" localStorage key to avoid conflicts with DailyTasks
+
+- Added proper cleanup for WeeklyProgressTasks component
+  - Event listeners are now properly removed on component unmount
+  - Subtask input debounce timers are cleared on unmount to prevent memory leaks
 
 ### Technical Details
 
-- Component visibility state stored in localStorage with key `life-dashboard-component-visibility`
-- Default state shows all components as visible on first load
-- Modal uses Vuetify 3 components (v-dialog, v-card, v-checkbox, v-btn, v-divider)
-- Changes are only committed when user clicks "Save Changes" button
-- Cancel button discards any unsaved changes and closes modal
-- Composable uses Vue 3 Composition API with reactive refs and deep watchers
-- Local state in modal prevents unwanted changes until explicitly saved
-
-### User Experience
-
-- Simple one-click access to visibility settings from fixed header
-- Clear visual feedback with checkboxes showing current state
-- Ability to preview changes before committing
-- Reset option for quick restoration to all-visible defaults
-- Persistent settings across browser sessions and page reloads
-- No page reload required when toggling visibility
+- Added `watch` and `onBeforeUnmount` imports from Vue to WeeklyProgressTasks
+- Implemented deep watcher with `{ deep: true }` option to catch all nested property changes including:
+  - Task text, done status, deadline, collapse state
+  - Subtask text, done status, focus state
+  - Task and subtask focus states (isFocused)
+  - Input field states and date picker visibility
+- Watcher automatically serializes entire tasks array to JSON and saves to localStorage on any change
+- DailyTasks uses "tasks" localStorage key
+- WeeklyProgressTasks uses "weeklyProgressTasks" localStorage key
+- Added cleanup logic in onBeforeUnmount to remove event listeners and clear timers
