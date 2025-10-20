@@ -242,7 +242,12 @@ const onTaskCheck = (task: Task) => {
 watch(
   tasks,
   (newTasks) => {
-    localStorage.setItem("tasks", JSON.stringify(newTasks));
+    try {
+      localStorage.setItem("tasks", JSON.stringify(newTasks));
+    } catch (error) {
+      console.error("Failed to save tasks to localStorage:", error);
+      // Optionally notify user via toast/snackbar
+    }
   },
   { deep: true }
 );
