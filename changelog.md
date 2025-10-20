@@ -526,8 +526,69 @@ interface Task {
 - Added consistent grey border to progress bar to make empty portion always visible
 - Progress bar now has uniform styling regardless of completion status
 
-## [Unreleased] - 2024-01-XX
+## [Unreleased]
 
-### Fixed
+### Added
 
-- **TodaysFocus.vue**: Fixed syntax error caused by misplaced `watch` and stray braces in `clearAllFocus` function. Now all functions are properly closed and the watcher is at the top level.
+// NEW: Simplified Vue 3 Data Management (Minimal Implementation)
+
+- **DataControls.vue**: Single Vue 3 component for data export/import
+  - Download button: Exports all localStorage data as JSON
+  - Upload button: Imports and restores data from JSON
+  - Uses only Vuetify 3 components (no custom CSS)
+  - Integrated directly into App.vue
+
+#### Implementation (Minimal Files):
+
+- **jsonHandler.ts**: Reusable utility functions (44 lines)
+- **DataControls.vue**: Self-contained component (103 lines)
+- **App.vue**: Integration point (1 import, 1 component tag)
+
+#### Features:
+
+- Complete data backup and restore
+- User feedback with v-alert
+- Loading states on buttons
+- Error handling
+- Auto-reload after import
+
+#### Vuetify 3 Styling (No Custom CSS):
+
+- v-card with elevation for visual hierarchy
+- v-btn with color/variant/prepend-icon props
+- v-alert for status messages
+- Spacing: ga-3, pa-4, mb-6, mt-4 utilities
+- Responsive: flex-wrap for mobile
+
+### Removed
+
+// CLEANUP: Deleted unnecessary React files from initial implementation
+
+- **src/components/DataControls.tsx**: React component (not needed in Vue 3 app)
+- **src/components/DataControls.css**: Custom CSS file (using Vuetify 3 utilities instead)
+
+### Technical Summary
+
+**Total Files Modified/Created: 3**
+
+1. Created: `src/components/DataControls.vue` (Vue 3 component)
+2. Modified: `src/App.vue` (added 1 import + 1 component)
+3. Reused: `src/utils/jsonHandler.ts` (already existed)
+
+**Lines of Code: ~150 total**
+
+- jsonHandler.ts: 44 lines
+- DataControls.vue: 103 lines
+- App.vue changes: 3 lines
+
+**Dependencies: 0 new packages**
+
+- Uses existing: vue, vuetify, @mdi/font
+
+**Implementation Philosophy:**
+
+- Minimal file structure
+- Reuse existing utilities
+- Pure Vuetify 3 styling
+- No custom CSS needed
+- Self-contained component
